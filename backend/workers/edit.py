@@ -497,7 +497,9 @@ def _build_video(job_id: str, job, target_w: int = 1080, target_h: int = 1920,
 
     # Keep only valid paths → convert each to reels format → concatenate
     valid_paths = [p for p in all_paths if p and os.path.exists(p)]
-    clips = [to_reels_format(VideoFileClip(p)) for p in valid_paths]
+    # moviepy ignores rotation flags of phone videos — feed it upright copies
+    from utils.ffmpeg_helper import ensure_upright
+    clips = [to_reels_format(VideoFileClip(ensure_upright(p))) for p in valid_paths]
     if len(clips) > 1:
         logger.info(f"[{job_id}] Concatenating {len(clips)} videos")
         video = concatenate_videoclips(clips, method="compose")
