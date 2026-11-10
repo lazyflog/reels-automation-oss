@@ -23,12 +23,12 @@ export default function LoginPage() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data.detail || "로그인에 실패했습니다.");
+        setError(data.detail || "Login failed.");
         return;
       }
       router.push("/");
     } catch {
-      setError("서버에 연결할 수 없습니다.");
+      setError("Unable to connect to the server.");
     } finally {
       setLoading(false);
     }
@@ -40,7 +40,7 @@ export default function LoginPage() {
         <h1 className="text-xl font-bold text-white mb-6">Reels Automation</h1>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label className="block text-sm text-gray-400 mb-1">아이디</label>
+            <label className="block text-sm text-gray-400 mb-1">Username</label>
             <input
               type="text"
               value={username}
@@ -51,7 +51,7 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-400 mb-1">비밀번호</label>
+            <label className="block text-sm text-gray-400 mb-1">Password</label>
             <input
               type="password"
               value={password}
@@ -66,7 +66,7 @@ export default function LoginPage() {
             disabled={loading}
             className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors"
           >
-            {loading ? "로그인 중..." : "로그인"}
+            {loading ? "Logging in…" : "Log in"}
           </button>
         </form>
       </div>

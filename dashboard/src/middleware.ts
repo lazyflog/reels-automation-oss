@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 인증 API는 항상 통과
+  // Always allow auth API
   if (pathname.startsWith("/api/auth/")) return;
 
   const session = request.cookies.get("session");

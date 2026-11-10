@@ -27,7 +27,7 @@ def _strip_emoji(text: str) -> str:
 
 
 def _get_video_duration(video_paths: list) -> float:
-    """ffprobe로 영상 총 길이(초) 계산. 최대 45초 클램프."""
+    """Compute total video duration (seconds) with ffprobe. Clamped to 45s."""
     total = 0.0
     for path in video_paths:
         if not path or not os.path.exists(path):
@@ -44,12 +44,12 @@ def _get_video_duration(video_paths: list) -> float:
                     total += float(stream.get("duration", 0))
                     break
         except Exception as e:
-            logger.warning(f"영상 길이 측정 실패 ({path}): {e}")
+            logger.warning(f"Failed to measure video duration ({path}): {e}")
     return min(total, 45.0)
 
 
 def _fetch_persona_details(persona_name: str) -> dict:
-    """DB에서 페르소나 description + speech_style 조회. 없으면 빈 문자열."""
+    """Fetch the persona description + speech_style from the DB. Empty strings if not found."""
     try:
         from models.persona import Persona
         with SyncSessionLocal() as db:
@@ -57,7 +57,7 @@ def _fetch_persona_details(persona_name: str) -> dict:
             if p:
                 return {"description": p.description, "speech_style": p.speech_style}
     except Exception as e:
-        logger.warning(f"페르소나 조회 실패 (스킵): {e}")
+        logger.warning(f"Persona lookup failed (skipped): {e}")
     return {"description": "", "speech_style": ""}
 
 
@@ -81,7 +81,7 @@ def _fetch_library_examples(persona: str | None) -> dict:
                 result[item.category].append(item.content)
         return result
     except Exception as e:
-        logger.warning(f"라이브러리 조회 실패 (스킵): {e}")
+        logger.warning(f"Prompt library lookup failed (skipped): {e}")
         return {"hook": [], "cta": [], "script": []}
 
 
@@ -191,7 +191,7 @@ def generate(self, prev_result: dict) -> dict:
         return
 
     job_id = prev_result["job_id"]
-    logger.info(f"[{job_id}] 대본 생성 시작")
+    logger.info(f"[{job_id}] Starting script generation")
     update_job(job_id, status="generating")
 
     try:
@@ -215,25 +215,25 @@ def generate(self, prev_result: dict) -> dict:
         else:
             product_info = source_url
 
-        # 영상 길이 측정 → 대본 길이 목표 설정 (표지 0.5초 포함 총 30~40초)
+        # Measure video duration → set the target script length (30-40s total incl. 0.5s cover)
         video_paths = prev_result.get("video_paths") or []
         if not video_paths and prev_result.get("video_path"):
             video_paths = [prev_result["video_path"]]
         raw_duration = _get_video_duration(video_paths)
-        # 영상보다 2초 짧게 대본 목표 설정 (검은 화면 방지), 29~39초 클램프
-        # 표지 0.5초 별도이므로 본편 29~39초 → 최종 29.5~39.5초
+        # Target the script 2s shorter than the video (prevents black screen), clamped to 29-39s
+        # The 0.5s cover is separate, so main body 29-39s → final 29.5-39.5s
         target_seconds = max(29, min(int(raw_duration - 2), 39)) if raw_duration > 2 else 35
-        logger.info(f"[{job_id}] 영상 총 길이: {raw_duration:.1f}s → 대본 목표: {target_seconds}초")
+        logger.info(f"[{job_id}] Total video duration: {raw_duration:.1f}s → script target: {target_seconds}s")
 
         script = generate_script(product_info, persona, target_seconds=target_seconds)
 
-        # TTS 길이 사전 검증 — 2x 속도 압축으로도 못 맞추면 대본 재생성 (최대 2회 재시도)
+        # Pre-validate TTS duration — regenerate the script if even 2x speed-up can't fit it (up to 2 retries)
         try:
             from workers.tts import synthesize_tts as _synthesize_tts, script_to_text, check_audio_duration
             video_duration = min(raw_duration, 30.0)
             duration_limit = max(video_duration - 2.0, 1.0)
             MAX_SPEED_RATIO = 2.0
-            # 검증 TTS는 user 설정 속도로 생성; natural = D * tts_speed, 최대 2x 압축 가능
+            # Validation TTS uses the user's speed setting; natural = D * tts_speed, up to 2x compression possible
             max_val_duration = duration_limit * MAX_SPEED_RATIO / tts_speed
             tts_val_dir = os.path.join(settings.temp_dir, job_id, "tts_val")
             os.makedirs(tts_val_dir, exist_ok=True)
@@ -246,19 +246,19 @@ def generate(self, prev_result: dict) -> dict:
                     _synthesize_tts(tts_text, val_audio, voice_id=voice_id, speed=tts_speed)
                     val_duration = check_audio_duration(val_audio)
                     logger.info(
-                        f"[{job_id}] TTS 검증 {attempt+1}/{MAX_TTS_RETRIES+1}: "
-                        f"{val_duration:.1f}s / 한도 {max_val_duration:.1f}s"
+                        f"[{job_id}] TTS check {attempt+1}/{MAX_TTS_RETRIES+1}: "
+                        f"{val_duration:.1f}s / limit {max_val_duration:.1f}s"
                     )
                     if val_duration <= max_val_duration:
-                        logger.info(f"[{job_id}] TTS 검증 통과")
+                        logger.info(f"[{job_id}] TTS check passed")
                         break
                     if attempt < MAX_TTS_RETRIES:
                         current_chars = len(tts_text)
-                        # 목표 글자 수: 비율 축소 후 10% 여유
+                        # Target character count: scale down proportionally, with a 10% margin
                         max_chars = int(current_chars * (max_val_duration / val_duration) * 0.9)
                         logger.info(
-                            f"[{job_id}] TTS 초과 → 대본 재생성 "
-                            f"(목표 {max_chars}자 ← 현재 {current_chars}자)"
+                            f"[{job_id}] TTS too long → regenerating script "
+                            f"(target {max_chars} chars ← current {current_chars} chars)"
                         )
                         script = generate_script(
                             product_info, persona,
@@ -266,11 +266,11 @@ def generate(self, prev_result: dict) -> dict:
                         )
                     else:
                         logger.warning(
-                            f"[{job_id}] TTS 검증 {MAX_TTS_RETRIES}회 재시도 후에도 "
-                            f"{val_duration:.1f}s 초과, 그대로 진행"
+                            f"[{job_id}] TTS still "
+                            f"{val_duration:.1f}s over the limit after {MAX_TTS_RETRIES} retries, proceeding anyway"
                         )
                 except Exception as val_err:
-                    logger.warning(f"[{job_id}] TTS 검증 스킵 ({attempt+1}): {val_err}")
+                    logger.warning(f"[{job_id}] TTS check skipped ({attempt+1}): {val_err}")
                     break
                 finally:
                     try:
@@ -279,29 +279,29 @@ def generate(self, prev_result: dict) -> dict:
                     except Exception:
                         pass
         except Exception as tts_val_err:
-            logger.warning(f"[{job_id}] TTS 검증 전체 스킵: {tts_val_err}")
+            logger.warning(f"[{job_id}] TTS check skipped entirely: {tts_val_err}")
 
         caption = generate_caption(script, product_info, keyword=script.get("keyword", ""))
 
-        # 대본 품질 평가 (비차단 — 실패 시 스킵)
+        # Script quality evaluation (non-blocking — skipped on failure)
         try:
             from utils.eval_helpers import evaluate_script, merge_eval_scores
             script_eval = evaluate_script(script, persona, target_seconds)
             merge_eval_scores(job_id, "script", script_eval)
-            logger.info(f"[{job_id}] 대본 평가: overall={script_eval.get('overall_score')}")
+            logger.info(f"[{job_id}] Script evaluation: overall={script_eval.get('overall_score')}")
         except Exception as eval_err:
-            logger.warning(f"[{job_id}] 대본 평가 스킵: {eval_err}")
+            logger.warning(f"[{job_id}] Script evaluation skipped: {eval_err}")
 
-        # 생성된 제목(20자 이내)이 있으면 job.title 갱신 (analyze 단계 제목보다 우선)
+        # If a generated title (max 20 chars) exists, update job.title (takes precedence over the analyze-step title)
         update_kwargs = dict(status="generated", script=script, caption=caption)
         script_title = script.get("title")
         if script_title:
             update_kwargs["title"] = script_title
         update_job(job_id, **update_kwargs)
-        logger.info(f"[{job_id}] 대본 생성 완료")
+        logger.info(f"[{job_id}] Script generation complete")
         return {**prev_result, "script": script, "caption": caption}
 
     except Exception as e:
-        logger.error(f"[{job_id}] 대본 생성 실패: {e}")
+        logger.error(f"[{job_id}] Script generation failed: {e}")
         update_job(job_id, status="failed", error_message=str(e))
         raise self.retry(exc=e)

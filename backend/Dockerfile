@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Optional user-supplied fonts (not distributed with this repo — see docs/FONTS.md)
+# Optional user-supplied fonts (not distributed with this repo — see docs/ASSETS.md)
 RUN mkdir -p /usr/share/fonts/truetype/custom
 COPY fonts/ /usr/share/fonts/truetype/custom/
 RUN fc-cache -fv

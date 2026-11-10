@@ -54,15 +54,15 @@ class Job(Base):
         default="pending",
     )
 
-    source_urls = Column(JSON, nullable=True)      # URL 배열 ["url1", "url2"]
+    source_urls = Column(JSON, nullable=True)      # array of URLs ["url1", "url2"]
     video_path = Column(String, nullable=True)
-    video_paths = Column(JSON, nullable=True)      # 다운로드된 경로 배열
+    video_paths = Column(JSON, nullable=True)      # array of downloaded paths
     output_path = Column(String, nullable=True)
     audio_path = Column(String, nullable=True)
-    title = Column(String, nullable=True)          # 검수 가능한 제목 필드
+    title = Column(String, nullable=True)          # title field editable during review
     script = Column(JSON, nullable=True)  # {"hook": "", "points": [], "cta": "", "disclaimer": ""}
     caption = Column(Text, nullable=True)
-    analysis_result = Column(JSON, nullable=True)  # Gemini 분석 결과
+    analysis_result = Column(JSON, nullable=True)  # Gemini analysis result
     cover_frame_time = Column(String, nullable=True)  # Float stored as string for compatibility
     cover_image_path = Column(String, nullable=True)
     voice_volume = Column(String, nullable=True, default="1.0")
@@ -76,26 +76,26 @@ class Job(Base):
     voice_id = Column(String, nullable=True)
     subtitle_color = Column(String, default="white")
     subtitle_bg_color = Column(String, nullable=True)
-    bgm_filename = Column(String, nullable=True)   # None이면 BGM 없음
-    subtitle_font = Column(String, nullable=True)  # 폰트 절대경로, None → 기본 NanumGothicBold
-    cover_font = Column(String, nullable=True)     # 표지 폰트 절대경로, None → 기본
-    tts_speed = Column(Float, nullable=True)       # None → 1.1 기본값
+    bgm_filename = Column(String, nullable=True)   # None means no BGM
+    subtitle_font = Column(String, nullable=True)  # absolute font path, None → default NanumGothicBold
+    cover_font = Column(String, nullable=True)     # absolute cover font path, None → default
+    tts_speed = Column(Float, nullable=True)       # None → default 1.1
     subtitle_position = Column(String, nullable=True)    # "top"/"upper"/"middle"/"lower"/"bottom"
-    cover_font_size = Column(Integer, nullable=True)    # None → 72 기본값
-    cover_title_color = Column(String, nullable=True)   # None → "white" 기본값 (윗줄 색)
-    cover_title_color2 = Column(String, nullable=True)  # 아랫줄 색, None → 윗줄과 동일
+    cover_font_size = Column(Integer, nullable=True)    # None → default 72
+    cover_title_color = Column(String, nullable=True)   # None → default "white" (top line color)
+    cover_title_color2 = Column(String, nullable=True)  # bottom line color, None → same as top line
     subtitle_shadow_color = Column(String, nullable=True)
     subtitle_shadow_offset = Column(Integer, nullable=True)
     subtitle_shadow_blur = Column(Integer, nullable=True)
     subtitle_stroke_color = Column(String, nullable=True)
     subtitle_stroke_width = Column(Integer, nullable=True)
     cover_title_position = Column(String, nullable=True)
-    subtitle_font_size = Column(Integer, nullable=True)  # None → 64 기본값
-    subtitle_italic = Column(Boolean, default=False)     # 자막 기울이기(합성 이탤릭)
-    cover_italic = Column(Boolean, default=False)        # 표지 제목 기울이기
-    cover_stroke_color = Column(String, nullable=True)   # 표지 제목 테두리 색상
-    cover_stroke_width = Column(Integer, nullable=True)  # 표지 제목 테두리 두께(None → 0)
-    eval_scores = Column(JSON, nullable=True)            # 품질 평가 결과 JSON
+    subtitle_font_size = Column(Integer, nullable=True)  # None → default 64
+    subtitle_italic = Column(Boolean, default=False)     # slant subtitles (synthetic italic)
+    cover_italic = Column(Boolean, default=False)        # slant cover title
+    cover_stroke_color = Column(String, nullable=True)   # cover title stroke color
+    cover_stroke_width = Column(Integer, nullable=True)  # cover title stroke width (None → 0)
+    eval_scores = Column(JSON, nullable=True)            # quality evaluation results JSON
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -3,44 +3,44 @@
 import { useState, useEffect, useCallback } from "react";
 
 export interface UserSettings {
-  // 자막 설정
+  // Subtitle settings
   subtitleColor: string;
   subtitleBgColor: string | null;
   subtitleBgEnabled: boolean;
-  subtitleFont: string;   // 폰트 절대경로
+  subtitleFont: string;   // absolute font path
 
-  // 목소리 설정
+  // Voice settings
   voiceId: string;
-  voiceVolume: number;  // 0.0~2.0, 기본 1.0
+  voiceVolume: number;  // 0.0–2.0, default 1.0
 
-  // BGM 설정
+  // BGM settings
   bgmFilename: string | null;
-  bgmVolume: number;  // 0.0~1.0, 기본 0.25
+  bgmVolume: number;  // 0.0–1.0, default 0.25
 
-  // 표지 설정
-  coverFont: string;    // 폰트 절대경로
+  // Cover settings
+  coverFont: string;    // absolute font path
 
-  // TTS 속도
-  ttsSpeed: number;  // 0.7~1.5, 기본 1.1
+  // TTS speed
+  ttsSpeed: number;  // 0.7–1.5, default 1.1
 
-  // 자막 테두리
+  // Subtitle outline
   subtitleStrokeColor: string;
   subtitleStrokeWidth: number;
 
-  // 자막 그림자
+  // Subtitle shadow
   subtitleShadowColor: string;
   subtitleShadowOffset: number;
   subtitleShadowBlur: number;
 
-  // 자막 위치
+  // Subtitle position
   subtitlePosition: string;
 
-  // 자막 폰트 크기 + 볼드 + 기울이기
+  // Subtitle font size + bold + italic
   subtitleFontSize: number;
   subtitleBold: boolean;
   subtitleItalic: boolean;
 
-  // 페르소나 (empty = no persona)
+  // Persona (empty = no persona)
   persona: string;
 }
 
@@ -81,7 +81,7 @@ export function useSettings() {
         setSettings({ ...DEFAULTS, ...JSON.parse(stored) });
       }
     } catch {
-      // localStorage 접근 실패 시 기본값 사용
+      // Fall back to defaults if localStorage is unavailable
     }
   }, []);
 

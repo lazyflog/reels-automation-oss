@@ -7,7 +7,7 @@ Built-in fonts come from Debian packages installed in the Docker image
 
 Any additional .ttf / .otf / .ttc files you put in ``backend/fonts/`` are copied
 to ``CUSTOM_FONT_DIR`` at build time and listed automatically. Make sure the
-font's license allows the way you use it (see docs/FONTS.md).
+font's license allows the way you use it (see docs/ASSETS.md).
 """
 import os
 

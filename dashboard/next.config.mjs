@@ -2,9 +2,9 @@
 const nextConfig = {
   output: "standalone",
   async rewrites() {
-    // BACKEND_URL: 서버(Node.js)가 API에 접근하는 주소
-    // - 로컬 개발: http://localhost:8000 (Docker 포트 매핑)
-    // - Docker 내부: http://api:8000 (컨테이너 간 통신)
+    // BACKEND_URL: address the server (Node.js) uses to reach the API
+    // - Local dev: http://localhost:8000 (Docker port mapping)
+    // - Inside Docker: http://api:8000 (container-to-container)
     const backendUrl = process.env.BACKEND_URL || "http://localhost:8000";
     return [
       { source: "/api/:path*", destination: `${backendUrl}/api/:path*` },

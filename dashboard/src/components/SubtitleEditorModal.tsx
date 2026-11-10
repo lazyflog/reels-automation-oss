@@ -26,7 +26,7 @@ export interface SubtitleInitial {
   shadowBlur: number;
 }
 
-// subtitle_position이 레거시 문자열(top/middle/bottom 등)일 수 있어 1~10로 정규화
+// subtitle_position may be a legacy string (top/middle/bottom, etc.), so normalize to 1–10
 export function normalizeSubPosition(raw: string | null): number {
   if (!raw) return 8;
   const n = parseInt(raw, 10);
@@ -54,7 +54,7 @@ export default function SubtitleEditorModal({
 }) {
   const initFamily = fontFamilies.find((f) => f.regular === initial.fontPath || f.bold === initial.fontPath);
 
-  const [text, setText] = useState(sampleText || "여기에 자막이 표시됩니다");
+  const [text, setText] = useState(sampleText || "Your subtitles appear here");
   const [selectedPath, setSelectedPath] = useState(initial.fontPath || DEFAULT_SUB_FONT);
   const [bold, setBold] = useState(initFamily ? initFamily.bold === initial.fontPath : initial.bold);
   const [italic, setItalic] = useState(initial.italic);
@@ -118,7 +118,7 @@ export default function SubtitleEditorModal({
         <PreviewStage bg={bgFrame} textStyle={textStyle} text={text} style={{ width: "100%", height: "100%" }} />
       </PreviewBox>
       <span style={{ fontSize: 11.5, color: "#7c89a6" }}>
-        ⓘ 자막 문구는 미리보기용입니다 · 저장 시 다음 렌더부터 스타일이 적용됩니다
+        ⓘ Subtitle text is for preview only · Saved styles apply from the next render
       </span>
     </>
   );
@@ -128,14 +128,14 @@ export default function SubtitleEditorModal({
       <input
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="미리보기 문구 (저장 안 됨)"
+        placeholder="Preview text (not saved)"
         style={{
           width: "100%", background: "#101a2b", border: "1px solid #2a3650", borderRadius: 11,
           color: "#e9eef7", fontSize: 15, fontWeight: 600, padding: "11px 13px", outline: "none",
         }}
       />
       <Row>
-        <Label>색상</Label>
+        <Label>Color</Label>
         <Swatches current={color} onPick={setColor} />
         <ColorInput value={color} onChange={setColor} />
       </Row>
@@ -143,38 +143,38 @@ export default function SubtitleEditorModal({
         <ToggleButton active={bold} onClick={() => setBold(!bold)} extraStyle={{ fontWeight: 800 }}>B</ToggleButton>
         <ToggleButton active={italic} onClick={() => setItalic(!italic)} extraStyle={{ fontStyle: "italic", fontFamily: "serif" }}>I</ToggleButton>
         <Divider />
-        <Label>글꼴</Label>
+        <Label>Font</Label>
         <select value={selectedPath} onChange={(e) => setSelectedPath(e.target.value)} style={SELECT_STYLE}>
-          {fontList.length === 0 && <option value="">기본 폰트</option>}
+          {fontList.length === 0 && <option value="">Default font</option>}
           {fontList.map((f) => (
             <option key={f.path} value={f.path}>{f.name}</option>
           ))}
         </select>
         <Divider />
-        <Label>크기</Label>
+        <Label>Size</Label>
         <RangeInput min={24} max={96} value={size} onChange={setSize} width={130} />
         <NumValue>{size}px</NumValue>
       </Row>
       <Row>
-        <ToggleButton active={bg} onClick={() => setBg(!bg)}>배경</ToggleButton>
+        <ToggleButton active={bg} onClick={() => setBg(!bg)}>Background</ToggleButton>
         <ColorInput value={bgColor} onChange={setBgColor} />
         <Divider />
-        <ToggleButton active={border} onClick={() => setBorder(!border)}>테두리</ToggleButton>
+        <ToggleButton active={border} onClick={() => setBorder(!border)}>Outline</ToggleButton>
         <ColorInput value={strokeColor} onChange={setStrokeColor} />
-        <Label>두께</Label>
+        <Label>Width</Label>
         <RangeInput min={0} max={20} value={strokeWidth} onChange={setStrokeWidth} width={90} />
         <NumValue>{strokeWidth}</NumValue>
       </Row>
       <Row>
-        <Label>그림자</Label>
-        <Label>오프셋</Label>
+        <Label>Shadow</Label>
+        <Label>Offset</Label>
         <RangeInput min={0} max={12} value={shadowOffset} onChange={setShadowOffset} width={90} />
         <NumValue>{shadowOffset}</NumValue>
-        <Label>블러</Label>
+        <Label>Blur</Label>
         <RangeInput min={0} max={12} value={shadowBlur} onChange={setShadowBlur} width={90} />
         <NumValue>{shadowBlur}</NumValue>
         <Divider />
-        <Label>위치</Label>
+        <Label>Position</Label>
         <RangeInput min={1} max={10} value={position} onChange={setPosition} width={120} />
         <NumValue>{position} / 10</NumValue>
       </Row>
@@ -183,9 +183,9 @@ export default function SubtitleEditorModal({
 
   return (
     <EditorShell
-      title="자막 편집"
-      subtitle="인스타그램 스타일 통합 패널 · 표지 편집과 동일한 컨트롤"
-      saveLabel="자막 저장"
+      title="Edit subtitles"
+      subtitle="Instagram-style unified panel · Same controls as the cover editor"
+      saveLabel="Save subtitles"
       saving={saving}
       onSave={handleSave}
       onClose={onClose}

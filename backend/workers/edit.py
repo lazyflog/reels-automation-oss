@@ -18,11 +18,12 @@ COVER_TITLE_POSITIONS = {
     "top": 200, "upper": 500, "middle": 810, "lower": 1200, "bottom": 1550,
 }
 
-# 단독으로 떨어지면 의미가 어색한 부정 부사 — 자막 줄바꿈 시 뒤 어절과 결합
+# Korean negation adverbs ("not" / "cannot") that read awkwardly when left alone on a line —
+# merged with the following word when wrapping subtitles
 _NEG_PREFIX_WORDS = {"안", "못"}
 
 def _parse_subtitle_position(pos_str: str) -> float:
-    """자막 위치 문자열 → float 변환. 10단계(1~10) + 레거시 호환."""
+    """Convert a subtitle position string → float. 10 levels (1-10) + legacy compatibility."""
     legacy = {"top": 0.05, "upper": 0.25, "middle": 0.45, "lower": 0.65, "bottom": 0.85}
     if pos_str in legacy:
         return legacy[pos_str]
@@ -42,9 +43,9 @@ def _apply_blur(img_array, blur_radius):
 
 
 def _apply_italic(img_array, shear: float = 0.22):
-    """수직 중앙 기준 전단(shear)으로 합성 이탤릭 효과. 캔버스 크기 유지.
-    한글 폰트에는 이탤릭 변형체가 없어 RGB·mask 프레임에 동일 전단을 적용한다.
-    (image_transform(apply_to=["mask"])로 호출되어 RGB(3채널)·mask(2D)를 모두 처리)
+    """Synthetic italic effect via a shear around the vertical center. Keeps the canvas size.
+    Korean fonts have no italic variants, so the same shear is applied to RGB and mask frames.
+    (Called via image_transform(apply_to=["mask"]), so it handles both RGB (3-channel) and mask (2D).)
     """
     from PIL import Image
     is_mask = img_array.ndim == 2
@@ -54,7 +55,7 @@ def _apply_italic(img_array, shear: float = 0.22):
         pil = Image.fromarray((np.clip(img_array, 0, 1) * 255).astype("uint8"), mode="L")
     else:
         pil = Image.fromarray(img_array.astype("uint8"))
-    # output(X,Y) <- input(X + shear*(Y - h/2), Y): 위쪽은 오른쪽, 아래쪽은 왼쪽
+    # output(X,Y) <- input(X + shear*(Y - h/2), Y): top shifts right, bottom shifts left
     c = shear * (h / 2.0)
     pil = pil.transform(
         (w, h), Image.AFFINE, (1, shear, -c, 0, 1, 0), resample=Image.BICUBIC
@@ -66,7 +67,7 @@ def _apply_italic(img_array, shear: float = 0.22):
 
 
 def to_reels_format(clip):
-    """9:16 (1080x1920) 크롭/리사이즈"""
+    """9:16 (1080x1920) crop/resize"""
     target_w, target_h = 1080, 1920
     target_ratio = target_w / target_h
     clip_ratio = clip.w / clip.h
@@ -91,8 +92,8 @@ def _strip_emoji(text: str) -> str:
 
 
 def _split_into_chunks(text: str, max_lines: int = 3, chars_per_line: int = 15) -> list:
-    """텍스트를 최대 max_lines 줄씩 청크로 분할"""
-    # 구두점 기준 분리 우선
+    """Split text into chunks of at most max_lines lines"""
+    # Prefer splitting on punctuation
     sentences = re.split(r'(?<=[.!?。！？,，])\s*', text.strip())
     sentences = [s.strip() for s in sentences if s.strip()]
 
@@ -117,7 +118,7 @@ def _split_into_chunks(text: str, max_lines: int = 3, chars_per_line: int = 15) 
 
 
 def _get_segment_times_from_alignment(segments: list, alignment: dict, total_duration: float):
-    """ElevenLabs character-level alignment으로 각 세그먼트의 (start, end) 반환. 실패 시 None."""
+    """Return (start, end) for each segment using ElevenLabs character-level alignment. None on failure."""
     chars = alignment.get("characters", [])
     starts = alignment.get("character_start_times_seconds", [])
     ends = alignment.get("character_end_times_seconds", [])
@@ -132,7 +133,7 @@ def _get_segment_times_from_alignment(segments: list, alignment: dict, total_dur
         seg_clean = seg.strip()
         idx = full_text.find(seg_clean, search_pos)
         if idx == -1:
-            return None  # 매칭 실패 → 문자비례 fallback
+            return None  # match failed → fall back to character-proportional timing
 
         end_idx = idx + len(seg_clean) - 1
         if end_idx >= len(ends):
@@ -164,24 +165,25 @@ def make_subtitle_clips(
     italic: bool = False,
     alignment: dict = None,
 ) -> list:
-    """대본 구조 단위(hook → points → cta)로 자막 클립 생성. 한 줄씩 표시."""
-    # 영상 폭에 비례해 폰트·텍스트박스 스케일
+    """Create subtitle clips per script unit (hook → points → cta). Shown one line at a time."""
+    # Scale font and text box proportionally to the video width
     scale = video_w / 1080
     font_size = max(18, int(font_size_base * scale))
     text_w = int(960 * scale)
-    # 시각적 한 줄에 들어갈 수 있는 최대 글자 수
-    # 한글은 글자폭 ≈ 폰트크기이므로 text_w/font_size가 곧 수용 글자수 (테두리 여유 0.95)
+    # Max number of characters that fit on one visual line
+    # Hangul glyph width ≈ font size, so text_w/font_size is the character capacity (0.95 margin for the stroke)
     visual_limit = max(8, int(text_w / font_size * 0.95))
 
     def _hard_split(text: str) -> list:
-        """어절 단위 균형 분할 → 시각적 한 줄 한도 내에서 의미가 끊기지 않게.
-        줄 수를 먼저 정해 어절을 균등 배분하고, 부정 부사(안/못)는 뒤 어절과 결합한다."""
+        """Balanced word-level split → keeps meaning intact within the one-visual-line limit.
+        Decides the line count first and distributes words evenly; negation adverbs
+        (_NEG_PREFIX_WORDS) are joined with the following word."""
         text = text.strip()
         if len(text) <= visual_limit:
             return [text] if text else []
 
         words = text.split()
-        # 단독 부정 부사(안/못)가 뒤 동사와 분리되면 어색하므로 결합
+        # A lone negation adverb (_NEG_PREFIX_WORDS) reads awkwardly when split from its verb, so merge them
         merged = []
         i = 0
         while i < len(words):
@@ -193,7 +195,7 @@ def make_subtitle_clips(
                 i += 1
         words = merged
 
-        # 줄 수를 먼저 정하고(ceil) 목표 줄 길이에 맞춰 어절을 균등 배분
+        # Decide the line count first (ceil), then distribute words evenly toward the target line length
         n_lines = max(1, (len(text) + visual_limit - 1) // visual_limit)
         target = len(text) / n_lines
         lines, cur = [], ""
@@ -210,7 +212,7 @@ def make_subtitle_clips(
         if cur:
             lines.append(cur)
 
-        # 한 어절이 한도를 크게 넘으면(긴 단어) 글자수 폴백 분할
+        # If a single word far exceeds the limit (long word), fall back to splitting by character count
         result = []
         for ln in lines:
             while len(ln) > visual_limit + 2:
@@ -234,7 +236,7 @@ def make_subtitle_clips(
         if script.get("cta"):
             raw_segments.extend(_split_into_chunks(_strip_emoji(script["cta"]), max_lines))
 
-    # 각 세그먼트를 시각적 1줄 내로 재분할
+    # Re-split each segment to fit within one visual line
     segments = []
     for seg in raw_segments:
         segments.extend(_hard_split(seg))
@@ -242,12 +244,12 @@ def make_subtitle_clips(
     if not segments:
         return []
 
-    # alignment 기반 타이밍 시도, 실패 시 문자 비례 fallback
+    # Try alignment-based timing; fall back to character-proportional timing on failure
     segment_times = None
     if alignment:
         segment_times = _get_segment_times_from_alignment(segments, alignment, duration)
         if segment_times is None:
-            logger.warning("alignment 세그먼트 매칭 실패, 문자비례 타이밍으로 fallback")
+            logger.warning("Alignment segment matching failed, falling back to character-proportional timing")
 
     if segment_times is None:
         lengths = [len(s) for s in segments]
@@ -262,7 +264,7 @@ def make_subtitle_clips(
 
     clips = []
 
-    # 하단 잘림 방지: stroke 오버플로우 + descender 픽셀 여유 확보
+    # Prevent bottom clipping: reserve pixels for stroke overflow + descenders
     sw = stroke_width or 0
     sub_height = int(font_size * 1.3) + sw * 2
 
@@ -323,8 +325,8 @@ def make_subtitle_clips(
 
 
 def _wrap_cover_title(title, draw, font, max_w, max_lines=2):
-    """줄바꿈(\\n)을 먼저 존중하고, 각 줄을 어절(공백) 단위로 너비에 맞춰 재줄바꿈. 최대 max_lines줄.
-    사용자가 Enter로 윗줄/아랫줄을 직접 나눌 수 있게 하기 위함(줄별 색상 지정과 연동)."""
+    """Respect explicit line breaks (\\n) first, then re-wrap each line by words (spaces) to fit the width. At most max_lines lines.
+    Lets the user split the top/bottom lines with Enter (tied to per-line colors)."""
     lines = []
     for segment in (title or "").split("\n"):
         words = segment.split()
@@ -352,23 +354,23 @@ def _generate_cover(video_path: str, job_id: str, frame_time: float,
                     stroke_color: str = None, stroke_width: int = 0,
                     text_color2: str = None,
                     output_name: str = "cover.jpg") -> str:
-    """ffmpeg로 프레임 추출 → Pillow로 제목 텍스트 오버레이 → 표지 이미지 경로 반환.
-    output_name으로 출력 파일명을 분리해 미리보기가 실제 cover.jpg를 덮어쓰지 않게 한다.
-    제목 텍스트는 투명 레이어에 그려 테두리(stroke)·기울이기(italic)를 적용 후 합성한다."""
+    """Extract a frame with ffmpeg → overlay the title text with Pillow → return the cover image path.
+    output_name gives a separate output file name so previews don't overwrite the real cover.jpg.
+    The title is drawn on a transparent layer, stroke and italic are applied, then it is composited."""
     import subprocess
     from PIL import Image, ImageDraw, ImageFont, ImageColor
 
     raw = os.path.join(settings.temp_dir, job_id, "cover_raw.jpg")
     out = os.path.join(settings.temp_dir, job_id, output_name)
 
-    # 1. 프레임 추출
+    # 1. Extract frame
     subprocess.run(
         ["ffmpeg", "-y", "-ss", str(frame_time), "-i", video_path,
          "-frames:v", "1", raw],
         check=True, capture_output=True,
     )
 
-    # 2. 1080x1920 크롭/리사이즈 (to_reels_format 동일 논리)
+    # 2. 1080x1920 crop/resize (same logic as to_reels_format)
     img = Image.open(raw).convert("RGB")
     iw, ih = img.size
     ratio = 1080 / 1920
@@ -380,7 +382,7 @@ def _generate_cover(video_path: str, job_id: str, frame_time: float,
         img = img.crop((0, (ih - nh) // 2, iw, (ih + nh) // 2))
     img = img.resize((1080, 1920), Image.LANCZOS)
 
-    # 3. 텍스트 오버레이 — 투명 레이어에 그린 뒤 italic 전단 적용 후 합성
+    # 3. Text overlay — draw on a transparent layer, apply the italic shear, then composite
     overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(overlay)
     try:
@@ -393,7 +395,7 @@ def _generate_cover(video_path: str, job_id: str, frame_time: float,
     except Exception:
         fill_color = (255, 255, 255)
 
-    # 아랫줄 색(지정 시) — 없으면 윗줄과 동일
+    # Bottom line color (if set) — otherwise same as the top line
     if text_color2:
         try:
             fill_color2 = ImageColor.getrgb(text_color2)
@@ -412,7 +414,7 @@ def _generate_cover(video_path: str, job_id: str, frame_time: float,
     line_height = int(font_size * 1.25)
     max_w = 960
 
-    # 어절 단위 줄바꿈 (최대 2줄), 초과 시 폰트 축소
+    # Word-level wrapping (max 2 lines); shrink the font if it overflows
     lines = _wrap_cover_title(title, draw, font, max_w, max_lines=2)
     cur_font_size = font_size
     while len(_wrap_cover_title(title, draw, font, max_w, max_lines=100)) > 2 and cur_font_size > 32:
@@ -429,10 +431,10 @@ def _generate_cover(video_path: str, job_id: str, frame_time: float,
     y = base_y - text_block_h // 2
     x_center = 540
     for i, line in enumerate(lines):
-        line_fill = fill_color if i == 0 else fill_color2  # 윗줄=색1, 아랫줄(이후)=색2
-        # 그림자 (테두리 없이)
+        line_fill = fill_color if i == 0 else fill_color2  # top line = color 1, bottom (and later) lines = color 2
+        # Shadow (no stroke)
         draw.text((x_center, y + 2), line, font=font, fill=(0, 0, 0, 180), anchor="mt")
-        # 본문 (테두리 옵션 적용)
+        # Main text (with optional stroke)
         if stroke_rgb is not None:
             draw.text((x_center, y), line, font=font, fill=line_fill, anchor="mt",
                       stroke_width=stroke_width, stroke_fill=stroke_rgb)
@@ -441,7 +443,7 @@ def _generate_cover(video_path: str, job_id: str, frame_time: float,
         y += line_height
 
     if italic:
-        # 수직 중앙 기준 전단 변형 (캔버스 크기 유지)
+        # Shear around the vertical center (keeps canvas size)
         ov_w, ov_h = overlay.size
         shear = 0.22
         c = shear * (ov_h / 2.0)
@@ -468,12 +470,12 @@ def update_job(job_id: str, **kwargs):
 
 def _build_video(job_id: str, job, target_w: int = 1080, target_h: int = 1920,
                  generate_cover: bool = False) -> str:
-    """영상 편집 공통 로직. output_path 반환."""
-    # 사용 가능한 영상 경로 결정
+    """Shared video editing logic. Returns output_path."""
+    # Determine usable video paths
     all_paths = list(job.video_paths) if job.video_paths else []
     if not all_paths and job.video_path:
         all_paths = [job.video_path]
-    video_path = all_paths[0] if all_paths else None  # 표지 생성용
+    video_path = all_paths[0] if all_paths else None  # used for cover generation
 
     audio_path = job.audio_path
     script = job.script
@@ -486,18 +488,18 @@ def _build_video(job_id: str, job, target_w: int = 1080, target_h: int = 1920,
     bgm_volume_val = float(job.bgm_volume) if job.bgm_volume else 0.25
 
     if not video_path or not os.path.exists(video_path):
-        raise ValueError(f"영상 파일 없음: {video_path}")
+        raise ValueError(f"Video file not found: {video_path}")
     if not audio_path or not os.path.exists(audio_path):
-        raise ValueError(f"음성 파일 없음: {audio_path}")
+        raise ValueError(f"Audio file not found: {audio_path}")
 
     os.makedirs(settings.output_dir, exist_ok=True)
     output_path = os.path.abspath(os.path.join(settings.output_dir, f"{job_id}.mp4"))
 
-    # 유효한 경로만 필터링 → 각각 reels 포맷 변환 → 이어붙이기
+    # Keep only valid paths → convert each to reels format → concatenate
     valid_paths = [p for p in all_paths if p and os.path.exists(p)]
     clips = [to_reels_format(VideoFileClip(p)) for p in valid_paths]
     if len(clips) > 1:
-        logger.info(f"[{job_id}] 영상 {len(clips)}개 이어붙이기")
+        logger.info(f"[{job_id}] Concatenating {len(clips)} videos")
         video = concatenate_videoclips(clips, method="compose")
     else:
         video = clips[0]
@@ -511,10 +513,10 @@ def _build_video(job_id: str, job, target_w: int = 1080, target_h: int = 1920,
 
     audio = AudioFileClip(audio_path).with_volume_scaled(voice_volume)
     tts_duration = audio.duration
-    # 소스 영상 길이 기준으로 final_duration 결정 (TARGET_MAX 클램프)
-    # TTS가 짧으면 나머지는 BGM으로 채우고, TTS가 길면 한도 내로 잘라냄
+    # Determine final_duration from the source video length (clamped to TARGET_MAX)
+    # If TTS is shorter, fill the rest with BGM; if longer, trim it to the limit
     final_duration = min(original_duration, TARGET_MAX)
-    tts_active = min(tts_duration, final_duration)  # TTS가 실제 재생되는 구간
+    tts_active = min(tts_duration, final_duration)  # span where TTS actually plays
 
     if bgm_filename:
         bgm_path = os.path.join(settings.bgm_dir, bgm_filename)
@@ -527,7 +529,7 @@ def _build_video(job_id: str, job, target_w: int = 1080, target_h: int = 1920,
             tts = audio.subclipped(0, tts_active)
             audio = CompositeAudioClip([tts, bgm]).with_duration(final_duration)
         else:
-            logger.warning(f"[{job_id}] BGM 파일 없음, 스킵: {bgm_path}")
+            logger.warning(f"[{job_id}] BGM file not found, skipping: {bgm_path}")
             tts = audio.subclipped(0, tts_active)
             if tts_active < final_duration:
                 silent = AudioClip(
@@ -550,13 +552,13 @@ def _build_video(job_id: str, job, target_w: int = 1080, target_h: int = 1920,
         else:
             audio = tts
 
-    # 영상 루프/트림 — BGM 유무와 무관하게 공통 적용 (검은 화면 방지)
+    # Loop/trim the video — applied regardless of BGM (prevents black screen)
     if video.duration < final_duration:
         video = video.with_effects([vfx.Loop(duration=final_duration)])
     else:
         video = video.subclipped(0, final_duration)
 
-    # 표지 이미지 생성 (final_edit 전용, 영상 렌더 전에 실행)
+    # Generate the cover image (final_edit only, runs before the video render)
     cover_image_path = None
     if generate_cover and job.cover_frame_time and job.title:
         try:
@@ -575,9 +577,9 @@ def _build_video(job_id: str, job, target_w: int = 1080, target_h: int = 1920,
             )
             update_job(job_id, cover_image_path=cover_path)
             cover_image_path = cover_path
-            logger.info(f"[{job_id}] 표지 이미지 생성: {cover_path}")
+            logger.info(f"[{job_id}] Cover image generated: {cover_path}")
         except Exception as e:
-            logger.warning(f"[{job_id}] 표지 이미지 생성 실패 (스킵): {e}")
+            logger.warning(f"[{job_id}] Cover image generation failed (skipped): {e}")
 
     alignment = None
     ts_path = os.path.join(settings.temp_dir, job_id, "voice_timestamps.json")
@@ -586,7 +588,7 @@ def _build_video(job_id: str, job, target_w: int = 1080, target_h: int = 1920,
             with open(ts_path, "r", encoding="utf-8") as f:
                 alignment = json.load(f)
         except Exception as e:
-            logger.warning(f"[{job_id}] voice_timestamps.json 로드 실패: {e}")
+            logger.warning(f"[{job_id}] Failed to load voice_timestamps.json: {e}")
 
     subtitle_clips = []
     if script:
@@ -619,7 +621,7 @@ def _build_video(job_id: str, job, target_w: int = 1080, target_h: int = 1920,
         )
         intro = intro.with_audio(silent)
 
-        # 자막 타임스탬프를 표지 길이만큼 뒤로 shift
+        # Shift subtitle timestamps later by the cover duration
         subtitle_clips = [
             c.with_start(c.start + COVER_DURATION).with_end(c.end + COVER_DURATION)
             for c in subtitle_clips
@@ -632,10 +634,10 @@ def _build_video(job_id: str, job, target_w: int = 1080, target_h: int = 1920,
         video = video.with_audio(audio)
         final = CompositeVideoClip([video] + subtitle_clips)
 
-    # 검은 화면 방지 검증
+    # Black-screen prevention check
     if final.duration < audio.duration - 0.5:
         logger.error(
-            f"[{job_id}] 검은 화면 위험: video={final.duration:.1f}s < audio={audio.duration:.1f}s"
+            f"[{job_id}] Black screen risk: video={final.duration:.1f}s < audio={audio.duration:.1f}s"
         )
 
     fps = 24 if target_w < 1080 else 30
@@ -650,15 +652,15 @@ def _build_video(job_id: str, job, target_w: int = 1080, target_h: int = 1920,
         logger=None,
     )
 
-    # 영상 품질 평가 (비차단 — 실패 시 스킵)
+    # Video quality evaluation (non-blocking — skipped on failure)
     try:
         from utils.eval_helpers import validate_output_video, merge_eval_scores
         video_eval = validate_output_video(output_path, final_duration)
         merge_eval_scores(job_id, "video", video_eval)
         if video_eval.get("has_black_frames"):
-            logger.warning(f"[{job_id}] 검은 화면 감지됨")
+            logger.warning(f"[{job_id}] Black screen detected")
     except Exception as e:
-        logger.warning(f"[{job_id}] 영상 평가 스킵: {e}")
+        logger.warning(f"[{job_id}] Video evaluation skipped: {e}")
 
     for clip in [final, video, audio]:
         try:
@@ -671,12 +673,12 @@ def _build_video(job_id: str, job, target_w: int = 1080, target_h: int = 1920,
 
 @celery.task(bind=True, max_retries=2, retry_backoff=True)
 def preview_edit(self, prev_result: dict) -> dict:
-    """저해상도(540x960) 프리뷰 영상 생성 → awaiting_tts_review"""
+    """Render a low-res (540x960) preview video → awaiting_tts_review"""
     if not prev_result:
         return
 
     job_id = prev_result["job_id"]
-    logger.info(f"[{job_id}] 프리뷰 편집 시작")
+    logger.info(f"[{job_id}] Starting preview edit")
     update_job(job_id, status="editing")
 
     try:
@@ -689,19 +691,19 @@ def preview_edit(self, prev_result: dict) -> dict:
             output_path = _build_video(job_id, job, target_w=540, target_h=960)
 
         update_job(job_id, status="awaiting_tts_review", output_path=output_path)
-        logger.info(f"[{job_id}] 프리뷰 편집 완료: {output_path}")
+        logger.info(f"[{job_id}] Preview edit complete: {output_path}")
         return {**prev_result, "output_path": output_path}
 
     except Exception as e:
-        logger.error(f"[{job_id}] 프리뷰 편집 실패: {e}")
+        logger.error(f"[{job_id}] Preview edit failed: {e}")
         update_job(job_id, status="failed", error_message=str(e))
         raise self.retry(exc=e)
 
 
 @celery.task(bind=True, max_retries=2, retry_backoff=True)
 def final_edit(self, job_id: str) -> dict:
-    """고해상도(1080x1920) 최종 렌더"""
-    logger.info(f"[{job_id}] 최종 편집 시작")
+    """High-res (1080x1920) final render"""
+    logger.info(f"[{job_id}] Starting final edit")
     update_job(job_id, status="editing")
 
     try:
@@ -714,19 +716,19 @@ def final_edit(self, job_id: str) -> dict:
                                        generate_cover=True)
 
         update_job(job_id, status="review_pending", output_path=output_path)
-        logger.info(f"[{job_id}] 최종 편집 완료: {output_path}")
+        logger.info(f"[{job_id}] Final edit complete: {output_path}")
         return {"job_id": job_id, "output_path": output_path}
 
     except Exception as e:
-        logger.error(f"[{job_id}] 최종 편집 실패: {e}")
+        logger.error(f"[{job_id}] Final edit failed: {e}")
         update_job(job_id, status="failed", error_message=str(e))
         raise self.retry(exc=e)
 
 
-# 하위 호환을 위한 별칭
+# Alias for backward compatibility
 @celery.task(bind=True, max_retries=2, retry_backoff=True)
 def edit(self, prev_result: dict) -> dict:
-    """레거시 호환 task — final_edit으로 위임"""
+    """Legacy-compatible task — delegates to final_edit"""
     if not prev_result:
         return
     job_id = prev_result["job_id"]

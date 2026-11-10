@@ -1,22 +1,22 @@
-"""Instagram Login(Business Login) 방식 토큰/계정 셋업 도구.
+"""Token/account setup tool for Instagram Login (Business Login).
 
-페이스북 페이지 없이 graph.instagram.com 경로로 릴스를 발행하기 위한
-① 단기→장기 토큰 교환 ② IG 계정 ID 조회 ③ 장기 토큰 갱신 을 처리한다.
+To publish Reels via graph.instagram.com without a Facebook Page, this handles:
+(1) short-lived → long-lived token exchange (2) IG account ID lookup (3) long-lived token refresh.
 
-사전 준비:
-  1) 인스타 계정을 "프로페셔널 → 비즈니스"로 전환
-  2) Meta 앱에 'Instagram' 제품 추가 → API setup with Instagram login
-  3) 스코프: instagram_business_basic, instagram_business_content_publish
-  4) Instagram Business Login으로 받은 "단기 토큰"을 아래 exchange에 입력
+Prerequisites:
+  1) Switch the Instagram account to "Professional → Business"
+  2) Add the 'Instagram' product to your Meta app → API setup with Instagram login
+  3) Scopes: instagram_business_basic, instagram_business_content_publish
+  4) Pass the "short-lived token" obtained via Instagram Business Login to `exchange` below
 
-사용 예:
-  # 1. 단기 토큰 → 장기 토큰(60일)으로 교환  (APP_SECRET 필요)
+Examples:
+  # 1. Exchange a short-lived token for a long-lived token (60 days)  (requires APP_SECRET)
   python scripts/instagram_setup.py exchange --short <SHORT_TOKEN> --secret <APP_SECRET>
 
-  # 2. 장기 토큰으로 IG 계정 ID 확인 → INSTAGRAM_ACCOUNT_ID 값
+  # 2. Look up the IG account ID with the long-lived token → INSTAGRAM_ACCOUNT_ID value
   python scripts/instagram_setup.py me --token <LONG_TOKEN>
 
-  # 3. 만료 전(24h~60일) 장기 토큰 갱신 → 새 60일 토큰
+  # 3. Refresh the long-lived token before it expires (24h-60 days) → new 60-day token
   python scripts/instagram_setup.py refresh --token <LONG_TOKEN>
 """
 import argparse
@@ -28,7 +28,7 @@ GRAPH = "https://graph.instagram.com"
 
 
 def exchange(short_token: str, app_secret: str) -> None:
-    """단기 토큰 → 장기 토큰(60일) 교환."""
+    """Exchange a short-lived token for a long-lived token (60 days)."""
     resp = requests.get(
         f"{GRAPH}/access_token",
         params={
@@ -41,13 +41,13 @@ def exchange(short_token: str, app_secret: str) -> None:
     resp.raise_for_status()
     data = resp.json()
     expires_days = round(data.get("expires_in", 0) / 86400, 1)
-    print("\n[장기 토큰 발급 완료]")
+    print("\n[Long-lived token issued]")
     print(f"INSTAGRAM_ACCESS_TOKEN={data['access_token']}")
-    print(f"(만료: 약 {expires_days}일 — 만료 전 refresh 필요)\n")
+    print(f"(Expires in ~{expires_days} days — refresh before it expires)\n")
 
 
 def me(token: str) -> None:
-    """장기 토큰으로 IG 계정 ID/유저네임 조회."""
+    """Look up the IG account ID/username with a long-lived token."""
     resp = requests.get(
         f"{GRAPH}/me",
         params={"fields": "user_id,username", "access_token": token},
@@ -55,15 +55,15 @@ def me(token: str) -> None:
     )
     resp.raise_for_status()
     data = resp.json()
-    # user_id가 곧 INSTAGRAM_ACCOUNT_ID. 일부 응답은 id 필드로 옴.
+    # user_id is the INSTAGRAM_ACCOUNT_ID. Some responses return it in the id field.
     account_id = data.get("user_id") or data.get("id")
-    print("\n[계정 확인]")
+    print("\n[Account]")
     print(f"username=@{data.get('username')}")
     print(f"INSTAGRAM_ACCOUNT_ID={account_id}\n")
 
 
 def refresh(token: str) -> None:
-    """장기 토큰 갱신 (24h~60일 사이에서만 가능, 갱신 시 다시 60일)."""
+    """Refresh a long-lived token (only possible between 24h and 60 days old; resets to 60 days)."""
     resp = requests.get(
         f"{GRAPH}/refresh_access_token",
         params={"grant_type": "ig_refresh_token", "access_token": token},
@@ -72,24 +72,24 @@ def refresh(token: str) -> None:
     resp.raise_for_status()
     data = resp.json()
     expires_days = round(data.get("expires_in", 0) / 86400, 1)
-    print("\n[토큰 갱신 완료]")
+    print("\n[Token refreshed]")
     print(f"INSTAGRAM_ACCESS_TOKEN={data['access_token']}")
-    print(f"(만료: 약 {expires_days}일)\n")
+    print(f"(Expires in ~{expires_days} days)\n")
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Instagram Login 토큰/계정 셋업")
+    parser = argparse.ArgumentParser(description="Instagram Login token/account setup")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
-    p_ex = sub.add_parser("exchange", help="단기→장기 토큰 교환")
-    p_ex.add_argument("--short", required=True, help="Instagram Business Login 단기 토큰")
-    p_ex.add_argument("--secret", help="Instagram 앱 시크릿 (미지정 시 .env의 INSTAGRAM_APP_SECRET)")
+    p_ex = sub.add_parser("exchange", help="Exchange a short-lived token for a long-lived token")
+    p_ex.add_argument("--short", required=True, help="Short-lived token from Instagram Business Login")
+    p_ex.add_argument("--secret", help="Instagram app secret (defaults to INSTAGRAM_APP_SECRET from .env)")
 
-    p_me = sub.add_parser("me", help="IG 계정 ID 조회")
-    p_me.add_argument("--token", required=True, help="장기 토큰")
+    p_me = sub.add_parser("me", help="Look up the IG account ID")
+    p_me.add_argument("--token", required=True, help="Long-lived token")
 
-    p_rf = sub.add_parser("refresh", help="장기 토큰 갱신")
-    p_rf.add_argument("--token", required=True, help="갱신할 장기 토큰")
+    p_rf = sub.add_parser("refresh", help="Refresh a long-lived token")
+    p_rf.add_argument("--token", required=True, help="Long-lived token to refresh")
 
     args = parser.parse_args()
 
@@ -100,14 +100,14 @@ def main() -> None:
                 from config import settings
                 secret = settings.instagram_app_secret
             if not secret:
-                sys.exit("앱 시크릿이 필요합니다 (--secret 또는 INSTAGRAM_APP_SECRET).")
+                sys.exit("App secret is required (--secret or INSTAGRAM_APP_SECRET).")
             exchange(args.short, secret)
         elif args.cmd == "me":
             me(args.token)
         elif args.cmd == "refresh":
             refresh(args.token)
     except requests.HTTPError as e:
-        sys.exit(f"API 오류: {e.response.status_code} {e.response.text}")
+        sys.exit(f"API error: {e.response.status_code} {e.response.text}")
 
 
 if __name__ == "__main__":

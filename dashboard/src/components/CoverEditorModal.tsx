@@ -17,11 +17,11 @@ export interface FontFamily {
 const DEFAULT_COVER_FONT = "/usr/share/fonts/truetype/nanum/NanumGothicBold.ttf";
 
 const POSITIONS = [
-  { label: "최상단", value: "top", pct: 9 },
-  { label: "상단", value: "upper", pct: 28 },
-  { label: "중단", value: "middle", pct: 50 },
-  { label: "하단", value: "lower", pct: 72 },
-  { label: "최하단", value: "bottom", pct: 91 },
+  { label: "Top", value: "top", pct: 9 },
+  { label: "Upper", value: "upper", pct: 28 },
+  { label: "Middle", value: "middle", pct: 50 },
+  { label: "Lower", value: "lower", pct: 72 },
+  { label: "Bottom", value: "bottom", pct: 91 },
 ] as const;
 
 export interface CoverInitial {
@@ -96,7 +96,7 @@ export default function CoverEditorModal({
     cover_font: resolvedFont,
     cover_font_size: size,
     cover_title_color: color,
-    cover_title_color2: twoColor ? color2 : "",  // 빈 문자열 → 단일색 해제
+    cover_title_color2: twoColor ? color2 : "",  // empty string → clear (single color)
     cover_title_position: position,
     cover_italic: italic,
     cover_stroke_color: border ? strokeColor : null,
@@ -105,7 +105,7 @@ export default function CoverEditorModal({
 
   const handleSave = async () => {
     if (frameIndex === null) {
-      alert("표지로 쓸 프레임을 먼저 선택하세요.");
+      alert("Select a frame for the cover first.");
       return;
     }
     setSaving(true);
@@ -118,7 +118,7 @@ export default function CoverEditorModal({
 
   const handleServerPreview = async () => {
     if (frameIndex === null) {
-      alert("프레임을 먼저 선택하세요.");
+      alert("Select a frame first.");
       return;
     }
     setServerLoading(true);
@@ -129,7 +129,7 @@ export default function CoverEditorModal({
         return url;
       });
     } catch (e) {
-      alert(`정확한 미리보기 실패: ${e}`);
+      alert(`Exact preview failed: ${e}`);
     } finally {
       setServerLoading(false);
     }
@@ -164,15 +164,15 @@ export default function CoverEditorModal({
             fontWeight: 700, fontSize: 12.5, padding: "9px 14px", borderRadius: 9, cursor: "pointer",
           }}
         >
-          {serverLoading ? "렌더 중..." : "정확한 렌더로 확인"}
+          {serverLoading ? "Rendering…" : "Check with exact render"}
         </button>
         {serverUrl && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-            <span style={{ fontSize: 11, color: "#7c89a6" }}>실제 렌더</span>
+            <span style={{ fontSize: 11, color: "#7c89a6" }}>Actual render</span>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={serverUrl}
-              alt="실제 렌더 미리보기"
+              alt="Actual render preview"
               style={{ width: 90, aspectRatio: "9/16", objectFit: "cover", borderRadius: 8, border: "1px solid #2a3650" }}
             />
           </div>
@@ -183,7 +183,7 @@ export default function CoverEditorModal({
 
   const panel = (
     <>
-      {/* 프레임 스트립 */}
+      {/* Frame strip */}
       <div
         style={{
           padding: "14px 18px", display: "flex", alignItems: "center", gap: 12,
@@ -191,8 +191,8 @@ export default function CoverEditorModal({
         }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 2, flex: "none" }}>
-          <span style={{ fontSize: 12.5, fontWeight: 800 }}>표지 프레임</span>
-          <span style={{ fontSize: 11, color: "#7c89a6" }}>영상에서 선택</span>
+          <span style={{ fontSize: 12.5, fontWeight: 800 }}>Cover frame</span>
+          <span style={{ fontSize: 11, color: "#7c89a6" }}>Pick from video</span>
         </div>
         <div style={{ display: "flex", gap: 9, overflowX: "auto", padding: "2px 0", flex: 1 }}>
           {frames.map((f, i) => (
@@ -229,17 +229,17 @@ export default function CoverEditorModal({
             cursor: "pointer", opacity: loadingFrames ? 0.6 : 1,
           }}
         >
-          {loadingFrames ? "로딩 중..." : frames.length ? "다시 불러오기" : "프레임 불러오기"}
+          {loadingFrames ? "Loading…" : frames.length ? "Reload" : "Load frames"}
         </button>
       </div>
 
-      {/* 컨트롤 */}
+      {/* Controls */}
       <div style={PANEL_PAD}>
         <textarea
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           rows={2}
-          placeholder="표지 제목 (줄바꿈 Enter로 윗줄/아랫줄 구분)"
+          placeholder="Cover title (press Enter to split top/bottom lines)"
           style={{
             width: "100%", background: "#101a2b", border: "1px solid #2a3650", borderRadius: 11,
             color: "#e9eef7", fontSize: 15, fontWeight: 600, padding: "11px 13px", outline: "none",
@@ -247,47 +247,47 @@ export default function CoverEditorModal({
           }}
         />
         <Row>
-          <Label>{twoColor ? "윗줄" : "색상"}</Label>
+          <Label>{twoColor ? "Top line" : "Color"}</Label>
           <Swatches current={color} onPick={setColor} />
           <ColorInput value={color} onChange={setColor} />
           <Divider />
-          <ToggleButton active={twoColor} onClick={() => setTwoColor(!twoColor)}>줄별 색</ToggleButton>
+          <ToggleButton active={twoColor} onClick={() => setTwoColor(!twoColor)}>Per-line color</ToggleButton>
         </Row>
         {twoColor && (
           <Row>
-            <Label>아랫줄</Label>
+            <Label>Bottom line</Label>
             <Swatches current={color2} onPick={setColor2} />
             <ColorInput value={color2} onChange={setColor2} />
-            <span style={{ fontSize: 11, color: "#7c89a6" }}>Enter로 나눈 2번째 줄에 적용</span>
+            <span style={{ fontSize: 11, color: "#7c89a6" }}>Applies to the second line (after Enter)</span>
           </Row>
         )}
         <Row>
           <ToggleButton active={bold} onClick={() => setBold(!bold)} extraStyle={{ fontWeight: 800 }}>B</ToggleButton>
           <ToggleButton active={italic} onClick={() => setItalic(!italic)} extraStyle={{ fontStyle: "italic", fontFamily: "serif" }}>I</ToggleButton>
           <Divider />
-          <Label>글꼴</Label>
+          <Label>Font</Label>
           <select value={selectedPath} onChange={(e) => setSelectedPath(e.target.value)} style={SELECT_STYLE}>
-            {fontList.length === 0 && <option value="">기본 폰트</option>}
+            {fontList.length === 0 && <option value="">Default font</option>}
             {fontList.map((f) => (
               <option key={f.path} value={f.path}>{f.name}</option>
             ))}
           </select>
           <Divider />
-          <Label>크기</Label>
+          <Label>Size</Label>
           <RangeInput min={40} max={160} value={size} onChange={setSize} width={140} />
           <NumValue>{size}px</NumValue>
         </Row>
         <Row>
-          <ToggleButton active={border} onClick={() => setBorder(!border)}>테두리</ToggleButton>
+          <ToggleButton active={border} onClick={() => setBorder(!border)}>Outline</ToggleButton>
           <ColorInput value={strokeColor} onChange={setStrokeColor} />
-          <Label>두께</Label>
+          <Label>Width</Label>
           <RangeInput min={0} max={24} value={strokeWidth} onChange={setStrokeWidth} width={100} />
           <NumValue>{strokeWidth}</NumValue>
           <Divider />
-          <ToggleButton active={shadow} onClick={() => setShadow(!shadow)}>그림자</ToggleButton>
+          <ToggleButton active={shadow} onClick={() => setShadow(!shadow)}>Shadow</ToggleButton>
         </Row>
         <Row>
-          <Label>위치</Label>
+          <Label>Position</Label>
           {POSITIONS.map((p) => (
             <ToggleButton key={p.value} active={position === p.value} onClick={() => setPosition(p.value)}>
               {p.label}
@@ -300,9 +300,9 @@ export default function CoverEditorModal({
 
   return (
     <EditorShell
-      title="표지 편집"
-      subtitle="1080×1920 · 바꾸면 바로 미리보기에 반영"
-      saveLabel="표지 저장"
+      title="Edit cover"
+      subtitle="1080×1920 · Changes show in the preview instantly"
+      saveLabel="Save cover"
       saving={saving}
       onSave={handleSave}
       onClose={onClose}

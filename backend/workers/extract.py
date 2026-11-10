@@ -12,7 +12,7 @@ from config import settings
 logger = logging.getLogger(__name__)
 
 def extract_xhs_video(url: str, output_path: str) -> str | None:
-    """xhs-downloader 사이드카 서비스로 CDN URL 획득 후 직접 다운로드. 메타데이터 문자열 반환."""
+    """Get the CDN URL from the xhs-downloader sidecar service, then download directly. Returns a metadata string."""
     resp = requests.post(
         f"{settings.xhs_downloader_url.rstrip('/')}/xhs/detail",
         json={"url": url, "download": False},
@@ -21,16 +21,16 @@ def extract_xhs_video(url: str, output_path: str) -> str | None:
     resp.raise_for_status()
     data = resp.json().get("data", {})
 
-    # 메타데이터 조합
+    # Assemble metadata
     title = data.get("作品标题", "")
     desc = data.get("作品描述", "")
     tags = data.get("作品标签", "")
-    product_info = f"제목: {title}\n설명: {desc}\n태그: {tags}".strip() if (title or desc or tags) else None
+    product_info = f"Title: {title}\nDescription: {desc}\nTags: {tags}".strip() if (title or desc or tags) else None
 
     urls = data.get("下载地址") or []
     cdn_url = next((u for u in urls if u), None)
     if not cdn_url:
-        raise ValueError("xhs-downloader: 다운로드 URL을 찾을 수 없음")
+        raise ValueError("xhs-downloader: download URL not found")
 
     with requests.get(cdn_url, stream=True, timeout=120) as r:
         r.raise_for_status()
@@ -42,7 +42,7 @@ def extract_xhs_video(url: str, output_path: str) -> str | None:
 
 
 def download_with_ytdlp(url: str, output_path: str) -> str:
-    """yt-dlp로 틱톡/인스타 등 영상 다운로드. 실제 파일 경로 반환."""
+    """Download a video (TikTok, Instagram, etc.) with yt-dlp. Returns the actual file path."""
     output_dir = os.path.dirname(output_path)
     ydl_opts = {
         "outtmpl": os.path.join(output_dir, "%(id)s.%(ext)s"),
@@ -69,11 +69,11 @@ def update_job(job_id: str, **kwargs):
 
 @celery.task(bind=True, max_retries=3, retry_backoff=True)
 def extract(self, job_id: str, source_urls) -> dict:
-    # 하위 호환: 단일 문자열도 수용
+    # Backward compatibility: also accept a single string
     if isinstance(source_urls, str):
         source_urls = [source_urls]
 
-    logger.info(f"[{job_id}] 수집 시작: {len(source_urls)}개 URL")
+    logger.info(f"[{job_id}] Starting download: {len(source_urls)} URLs")
     update_job(job_id, status="extracting")
 
     output_dir = os.path.join(settings.temp_dir, job_id)
@@ -94,9 +94,9 @@ def extract(self, job_id: str, source_urls) -> dict:
             else:
                 download_with_ytdlp(url, output_path)
             video_paths.append(output_path)
-            logger.info(f"[{job_id}] 수집 완료 ({i+1}/{len(source_urls)}): {output_path}")
+            logger.info(f"[{job_id}] Download complete ({i+1}/{len(source_urls)}): {output_path}")
 
-        # 첫 번째 영상을 레거시 video_path로도 저장
+        # Also store the first video as the legacy video_path
         update_job(
             job_id,
             status="extracted",
@@ -109,16 +109,16 @@ def extract(self, job_id: str, source_urls) -> dict:
         return result
 
     except ValueError as e:
-        logger.error(f"[{job_id}] URL 파싱 실패: {e}")
+        logger.error(f"[{job_id}] URL parsing failed: {e}")
         update_job(job_id, status="failed", error_message=str(e))
         return
 
     except requests.HTTPError as e:
-        logger.warning(f"[{job_id}] HTTP 오류, 재시도: {e}")
+        logger.warning(f"[{job_id}] HTTP error, retrying: {e}")
         update_job(job_id, error_message=str(e))
         raise self.retry(exc=e)
 
     except Exception as e:
-        logger.error(f"[{job_id}] 수집 실패: {e}")
+        logger.error(f"[{job_id}] Download failed: {e}")
         update_job(job_id, status="failed", error_message=str(e))
         raise self.retry(exc=e)

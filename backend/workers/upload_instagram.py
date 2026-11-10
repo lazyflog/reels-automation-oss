@@ -39,7 +39,7 @@ def update_job(job_id: str, **kwargs):
 
 @celery.task(bind=True, max_retries=3, retry_backoff=True)
 def upload_instagram(self, job_id: str) -> dict:
-    logger.info(f"[{job_id}] 인스타그램 업로드 시작")
+    logger.info(f"[{job_id}] Starting Instagram upload")
 
     try:
         with SyncSessionLocal() as db:
@@ -50,39 +50,39 @@ def upload_instagram(self, job_id: str) -> dict:
             caption = job.caption or ""
 
         if not output_path:
-            raise ValueError("output_path가 없습니다")
+            raise ValueError("output_path is missing")
 
-        # 공개 URL 구성
+        # Build the public URL
         import os
         filename = os.path.basename(output_path)
         video_url = f"{settings.public_base_url}/output/{filename}"
 
         update_job(job_id, status="uploading")
 
-        # 1. 컨테이너 생성
+        # 1. Create the container
         container_id = create_reels_container(video_url, caption)
-        logger.info(f"[{job_id}] 컨테이너 생성됨: {container_id}")
+        logger.info(f"[{job_id}] Container created: {container_id}")
 
-        # 2. 인코딩 완료 대기
+        # 2. Wait for encoding to finish
         wait_for_encoding(container_id)
-        logger.info(f"[{job_id}] 인코딩 완료")
+        logger.info(f"[{job_id}] Encoding complete")
 
-        # 3. 게시
+        # 3. Publish
         post_id = publish_reels(container_id)
-        logger.info(f"[{job_id}] 인스타그램 게시 완료: {post_id}")
+        logger.info(f"[{job_id}] Published to Instagram: {post_id}")
 
         update_job(job_id, instagram_post_id=post_id, status="published")
         return {"job_id": job_id, "instagram_post_id": post_id}
 
     except requests.HTTPError as e:
         if e.response.status_code == 429:
-            logger.warning(f"[{job_id}] Rate limit, 1시간 후 재시도")
+            logger.warning(f"[{job_id}] Rate limited, retrying in 1 hour")
             raise self.retry(exc=e, countdown=3600)
-        logger.error(f"[{job_id}] HTTP 오류: {e}")
+        logger.error(f"[{job_id}] HTTP error: {e}")
         update_job(job_id, status="failed", error_message=str(e))
         raise self.retry(exc=e)
 
     except Exception as e:
-        logger.error(f"[{job_id}] 인스타그램 업로드 실패: {e}")
+        logger.error(f"[{job_id}] Instagram upload failed: {e}")
         update_job(job_id, status="failed", error_message=str(e))
         raise self.retry(exc=e)

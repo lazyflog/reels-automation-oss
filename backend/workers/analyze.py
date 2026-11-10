@@ -31,12 +31,12 @@ def analyze(self, prev_result: dict) -> dict:
     if not video_paths and prev_result.get("video_path"):
         video_paths = [prev_result["video_path"]]
 
-    # Gemini API 키 없으면 분석 스킵
+    # Skip analysis if no Gemini API key is set
     if not settings.gemini_api_key:
-        logger.warning(f"[{job_id}] GEMINI_API_KEY 미설정, 분석 단계 스킵")
+        logger.warning(f"[{job_id}] GEMINI_API_KEY not set, skipping analysis step")
         return prev_result
 
-    logger.info(f"[{job_id}] Gemini 영상 분석 시작 ({len(video_paths)}개 영상)")
+    logger.info(f"[{job_id}] Starting Gemini video analysis ({len(video_paths)} videos)")
     update_job(job_id, status="analyzing")
 
     try:
@@ -47,28 +47,28 @@ def analyze(self, prev_result: dict) -> dict:
 
         uploaded = []
         for path in video_paths:
-            logger.info(f"[{job_id}] Gemini 파일 업로드: {path}")
+            logger.info(f"[{job_id}] Uploading file to Gemini: {path}")
             f = genai.upload_file(path=path, mime_type=mimetypes.guess_type(path)[0] or "video/mp4")
-            # PROCESSING 완료 대기
-            for _ in range(60):  # 최대 3분
+            # Wait for PROCESSING to finish
+            for _ in range(60):  # up to 3 minutes
                 if f.state.name != "PROCESSING":
                     break
                 time.sleep(3)
                 f = genai.get_file(f.name)
             if f.state.name == "FAILED":
-                logger.warning(f"[{job_id}] Gemini 파일 업로드 실패: {path}")
+                logger.warning(f"[{job_id}] Gemini file upload failed: {path}")
                 continue
             uploaded.append(f)
 
         if not uploaded:
-            logger.warning(f"[{job_id}] 업로드된 영상 없음, 분석 스킵")
+            logger.warning(f"[{job_id}] No videos uploaded, skipping analysis")
             return prev_result
 
         prompt = prompts.fill(prompts.VIDEO_ANALYSIS_PROMPT, language=settings.content_language)
 
         response = model.generate_content([*uploaded, prompt])
         text = response.text.strip()
-        # JSON 블록 추출
+        # Extract the JSON block
         if "```" in text:
             text = text.split("```")[1]
             if text.startswith("json"):
@@ -81,11 +81,11 @@ def analyze(self, prev_result: dict) -> dict:
             analysis_result=result,
             title=result.get("suggested_title"),
         )
-        logger.info(f"[{job_id}] 분석 완료: {result.get('product_name')}")
+        logger.info(f"[{job_id}] Analysis complete: {result.get('product_name')}")
         return {**prev_result, "product_info": result.get("product_info", ""), "analysis_result": result}
 
     except Exception as e:
-        logger.error(f"[{job_id}] 분석 실패: {e}")
-        # 분석 실패해도 파이프라인 계속 (product_info 없이 진행)
-        update_job(job_id, status="analyzed", error_message=f"분석 실패(스킵): {e}")
+        logger.error(f"[{job_id}] Analysis failed: {e}")
+        # Keep the pipeline going even if analysis fails (proceed without product_info)
+        update_job(job_id, status="analyzed", error_message=f"Analysis failed (skipped): {e}")
         return prev_result

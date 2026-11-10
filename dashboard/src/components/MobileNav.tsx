@@ -5,11 +5,11 @@ import { usePathname } from "next/navigation";
 import LogoutButton from "@/components/LogoutButton";
 
 const LINKS = [
-  { href: "/", label: "작업 목록" },
-  { href: "/library", label: "라이브러리" },
-  { href: "/voices", label: "음성" },
-  { href: "/personas", label: "페르소나" },
-  { href: "/report", label: "리포트" },
+  { href: "/", label: "Jobs" },
+  { href: "/library", label: "Library" },
+  { href: "/voices", label: "Voices" },
+  { href: "/personas", label: "Personas" },
+  { href: "/report", label: "Report" },
 ];
 
 export default function MobileNav() {
@@ -23,7 +23,7 @@ export default function MobileNav() {
 
   return (
     <nav className="border-b border-gray-800">
-      {/* 데스크톱: 가로 네비 (기존과 동일) */}
+      {/* Desktop: horizontal nav (unchanged) */}
       <div className="hidden sm:flex gap-6 items-center px-6 py-3">
         <span className="font-bold text-white text-lg">Reels Automation</span>
         {LINKS.map((l) => (
@@ -36,14 +36,14 @@ export default function MobileNav() {
         </div>
       </div>
 
-      {/* 모바일: 로고 + 햄버거 토글 */}
+      {/* Mobile: logo + hamburger toggle */}
       <div className="sm:hidden">
         <div className="flex items-center justify-between px-4 py-3">
           <span className="font-bold text-white text-lg">Reels Automation</span>
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
-            aria-label="메뉴 열기"
+            aria-label="Open menu"
             aria-expanded={open}
             className="text-gray-300 hover:text-white text-2xl leading-none px-2 -mr-2"
           >

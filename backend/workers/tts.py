@@ -43,12 +43,12 @@ def elevenlabs_tts(text: str, output_path: str, voice_id: str = None, speed: flo
 
 
 def clova_tts(text: str, output_path: str) -> None:
-    """Naver CLOVA Voice TTS 폴백"""
+    """Naver CLOVA Voice TTS fallback"""
     client_id = settings.clova_client_id
     client_secret = settings.clova_client_secret
 
     if not client_id or not client_secret:
-        raise RuntimeError("CLOVA 환경변수 미설정 (CLOVA_CLIENT_ID, CLOVA_CLIENT_SECRET)")
+        raise RuntimeError("CLOVA environment variables not set (CLOVA_CLIENT_ID, CLOVA_CLIENT_SECRET)")
 
     url = "https://naveropenapi.apigw.ntruss.com/tts-premium/v1/tts"
     headers = {
@@ -85,7 +85,7 @@ def synthesize_tts(text: str, output_path: str, voice_id: str = None, speed: flo
             return elevenlabs_tts(text, output_path, voice_id=voice_id, speed=speed)
         except requests.HTTPError as e:
             if settings.enable_clova_voice and e.response.status_code in (429, 500, 502, 503):
-                logger.warning(f"ElevenLabs 실패 ({e.response.status_code}), CLOVA로 폴백")
+                logger.warning(f"ElevenLabs failed ({e.response.status_code}), falling back to CLOVA")
                 clova_tts(text, output_path)
                 return None
             else:
@@ -103,13 +103,13 @@ def check_audio_duration(audio_path: str) -> float:
     clip.close()
 
     if duration > 30:
-        logger.warning(f"TTS 음성이 30초 초과: {duration:.1f}초")
+        logger.warning(f"TTS audio exceeds 30s: {duration:.1f}s")
 
     return duration
 
 
 def script_to_text(script: dict) -> str:
-    """대본 JSON을 TTS용 텍스트로 변환"""
+    """Convert the script JSON into text for TTS"""
     if script.get("full_text"):
         return script["full_text"]
     parts = [script.get("hook", "")]
@@ -120,7 +120,7 @@ def script_to_text(script: dict) -> str:
 
 
 def _speed_up_audio(audio_path: str, factor: float) -> None:
-    """ffmpeg atempo 필터로 오디오 속도 조정 (in-place). atempo 범위 0.5~2.0 체이닝."""
+    """Adjust audio speed with the ffmpeg atempo filter (in place). Chains atempo to stay within 0.5-2.0."""
     import subprocess
     tmp = audio_path + ".atempo.mp3"
     filters = []
@@ -137,7 +137,7 @@ def _speed_up_audio(audio_path: str, factor: float) -> None:
 
 
 def _apply_volume_to_audio(audio_path: str, volume: float) -> None:
-    """ffmpeg volume 필터로 오디오 볼륨 조정 (in-place). 1.0 = 원본."""
+    """Adjust audio volume with the ffmpeg volume filter (in place). 1.0 = original."""
     import subprocess
     tmp = audio_path + ".vol.mp3"
     subprocess.run(
@@ -148,7 +148,7 @@ def _apply_volume_to_audio(audio_path: str, volume: float) -> None:
 
 
 def _scale_alignment(alignment: dict, factor: float) -> dict:
-    """atempo 배속 후 alignment 타임스탬프 비례 보정."""
+    """Scale alignment timestamps proportionally after atempo speed-up."""
     return {
         "characters": alignment.get("characters", []),
         "character_start_times_seconds": [t / factor for t in alignment.get("character_start_times_seconds", [])],
@@ -157,7 +157,7 @@ def _scale_alignment(alignment: dict, factor: float) -> dict:
 
 
 def _get_video_duration(video_paths: list) -> float:
-    """소스 영상 총 길이 반환 (최대 30초 클램프). 측정 실패 시 30.0 반환."""
+    """Return the total source video duration (clamped to 30s). Returns 30.0 if measurement fails."""
     try:
         from moviepy import VideoFileClip
         total = 0.0
@@ -186,7 +186,7 @@ def tts(self, prev_result: dict) -> dict:
         return
 
     job_id = prev_result["job_id"]
-    logger.info(f"[{job_id}] TTS 시작")
+    logger.info(f"[{job_id}] Starting TTS")
     update_job(job_id, status="tts_processing")
 
     try:
@@ -202,7 +202,7 @@ def tts(self, prev_result: dict) -> dict:
                 all_video_paths = [job.video_path]
 
         if not script:
-            raise ValueError("대본이 없습니다")
+            raise ValueError("No script found")
 
         text = script_to_text(script)
         audio_path = os.path.join(settings.temp_dir, job_id, "voice.mp3")
@@ -211,39 +211,39 @@ def tts(self, prev_result: dict) -> dict:
         alignment = synthesize_tts(text, audio_path, voice_id=voice_id, speed=tts_speed)
         duration = check_audio_duration(audio_path)
 
-        # TTS 한도 = min(소스영상, 30s) - 2s
+        # TTS limit = min(source video, 30s) - 2s
         SPEED_MAX = 1.5
-        video_duration = _get_video_duration(all_video_paths)  # min(소스, 30s) 반환
+        video_duration = _get_video_duration(all_video_paths)  # returns min(source, 30s)
         duration_limit = video_duration - 2.0
         if duration > duration_limit:
-            # DB에 저장된 속도가 이미 최대여도 재계산 (이전 자동조정값에 묶이지 않도록)
+            # Recompute even if the stored speed is already max (so we're not stuck with a previous auto-adjusted value)
             base_speed = min(tts_speed, SPEED_MAX)
             adjusted_speed = min(base_speed * (duration / duration_limit), SPEED_MAX)
             if adjusted_speed > tts_speed:
-                # 더 빠른 속도로 재생성
+                # Regenerate at a faster speed
                 logger.info(
-                    f"[{job_id}] TTS {duration:.1f}s > 한도 {duration_limit:.0f}s, "
-                    f"속도 {tts_speed:.2f} → {adjusted_speed:.2f} 재생성"
+                    f"[{job_id}] TTS {duration:.1f}s > limit {duration_limit:.0f}s, "
+                    f"regenerating at speed {tts_speed:.2f} → {adjusted_speed:.2f}"
                 )
                 alignment = synthesize_tts(text, audio_path, voice_id=voice_id, speed=adjusted_speed)
                 duration = check_audio_duration(audio_path)
                 tts_speed = adjusted_speed
                 update_job(job_id, tts_speed=str(round(adjusted_speed, 2)))
             else:
-                # 이미 최대 속도(1.5) — ElevenLabs 재생성 불필요, atempo로 바로 진행
-                logger.info(f"[{job_id}] 이미 최대 속도({tts_speed:.2f}), ElevenLabs 재생성 스킵")
+                # Already at max speed (1.5) — no need to regenerate with ElevenLabs, go straight to atempo
+                logger.info(f"[{job_id}] Already at max speed ({tts_speed:.2f}), skipping ElevenLabs regeneration")
             if duration > duration_limit:
-                # ElevenLabs 최대 속도로도 부족 → ffmpeg atempo 후처리
+                # Still too long at ElevenLabs max speed → ffmpeg atempo post-processing
                 atempo_factor = duration / duration_limit
                 total_speed = tts_speed * atempo_factor
                 if total_speed > 2.0:
                     logger.warning(
-                        f"[{job_id}] 총 속도 {total_speed:.2f}x (ElevenLabs {tts_speed:.2f}x × atempo {atempo_factor:.3f}x) "
-                        f"— 스크립트가 너무 깁니다"
+                        f"[{job_id}] Total speed {total_speed:.2f}x (ElevenLabs {tts_speed:.2f}x × atempo {atempo_factor:.3f}x) "
+                        f"— script is too long"
                     )
                 logger.info(
-                    f"[{job_id}] ElevenLabs 최대 속도 후에도 {duration:.1f}s 초과, "
-                    f"ffmpeg atempo {atempo_factor:.3f}x 적용"
+                    f"[{job_id}] Still {duration:.1f}s over the limit at ElevenLabs max speed, "
+                    f"applying ffmpeg atempo {atempo_factor:.3f}x"
                 )
                 _speed_up_audio(audio_path, atempo_factor)
                 if alignment:
@@ -255,7 +255,7 @@ def tts(self, prev_result: dict) -> dict:
             with open(ts_path, "w", encoding="utf-8") as f:
                 json.dump(alignment, f, ensure_ascii=False)
 
-        # TTS 길이 검증 (비차단 — 실패 시 스킵)
+        # TTS duration check (non-blocking — skipped on failure)
         try:
             from utils.eval_helpers import merge_eval_scores
             tts_eval = {
@@ -267,18 +267,18 @@ def tts(self, prev_result: dict) -> dict:
             }
             merge_eval_scores(job_id, "tts", tts_eval)
         except Exception as eval_err:
-            logger.warning(f"[{job_id}] TTS 평가 스킵: {eval_err}")
+            logger.warning(f"[{job_id}] TTS evaluation skipped: {eval_err}")
 
         update_job(job_id, status="tts_done", audio_path=audio_path)
-        logger.info(f"[{job_id}] TTS 완료: {duration:.1f}초")
+        logger.info(f"[{job_id}] TTS complete: {duration:.1f}s")
         return {**prev_result, "audio_path": audio_path, "audio_duration": duration}
 
     except requests.HTTPError as e:
-        logger.warning(f"[{job_id}] TTS HTTP 오류, 재시도: {e}")
+        logger.warning(f"[{job_id}] TTS HTTP error, retrying: {e}")
         update_job(job_id, error_message=str(e))
         raise self.retry(exc=e)
 
     except Exception as e:
-        logger.error(f"[{job_id}] TTS 실패: {e}")
+        logger.error(f"[{job_id}] TTS failed: {e}")
         update_job(job_id, status="failed", error_message=str(e))
         raise self.retry(exc=e)

@@ -31,7 +31,7 @@ export default function ReportPage() {
 
   if (!report) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-500">로딩 중...</div>
+      <div className="flex items-center justify-center h-64 text-gray-500">Loading…</div>
     );
   }
 
@@ -41,14 +41,14 @@ export default function ReportPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold">리포트</h1>
+      <h1 className="text-2xl font-bold">Report</h1>
 
-      {/* 업로드 카운트 카드 */}
+      {/* Upload count cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { label: "오늘", value: report.uploads.today },
-          { label: "이번 주", value: report.uploads.this_week },
-          { label: "이번 달", value: report.uploads.this_month },
+          { label: "Today", value: report.uploads.today },
+          { label: "This week", value: report.uploads.this_week },
+          { label: "This month", value: report.uploads.this_month },
         ].map((item) => (
           <div
             key={item.label}
@@ -56,14 +56,14 @@ export default function ReportPage() {
           >
             <p className="text-gray-500 text-sm mb-1">{item.label}</p>
             <p className="text-4xl font-bold text-white">{item.value}</p>
-            <p className="text-gray-500 text-xs mt-1">게시됨</p>
+            <p className="text-gray-500 text-xs mt-1">Published</p>
           </div>
         ))}
       </div>
 
-      {/* 도넛 차트 */}
+      {/* Donut chart */}
       <div className="bg-gray-900 rounded-xl border border-gray-800 p-5">
-        <h2 className="text-sm font-medium text-gray-400 mb-4">상태별 분포</h2>
+        <h2 className="text-sm font-medium text-gray-400 mb-4">Status breakdown</h2>
         {pieData.length > 0 ? (
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
@@ -95,28 +95,28 @@ export default function ReportPage() {
             </PieChart>
           </ResponsiveContainer>
         ) : (
-          <div className="flex items-center justify-center h-48 text-gray-500">데이터 없음</div>
+          <div className="flex items-center justify-center h-48 text-gray-500">No data</div>
         )}
       </div>
 
-      {/* 최근 게시 목록 */}
+      {/* Recently published */}
       <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-x-auto">
         <div className="px-5 py-4 border-b border-gray-800">
-          <h2 className="text-sm font-medium text-gray-400">최근 게시된 릴스</h2>
+          <h2 className="text-sm font-medium text-gray-400">Recently published Reels</h2>
         </div>
         <table className="w-full text-sm min-w-[600px]">
           <thead className="bg-gray-800 text-gray-400">
             <tr>
-              <th className="text-left px-5 py-3">플랫폼</th>
+              <th className="text-left px-5 py-3">Platform</th>
               <th className="text-left px-5 py-3">Instagram ID</th>
-              <th className="text-left px-5 py-3">게시일</th>
+              <th className="text-left px-5 py-3">Published</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-800">
             {report.recent_published.length === 0 && (
               <tr>
                 <td colSpan={3} className="text-center py-10 text-gray-500">
-                  게시된 릴스가 없습니다
+                  No published Reels yet
                 </td>
               </tr>
             )}

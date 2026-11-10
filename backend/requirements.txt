@@ -1,6 +1,8 @@
 fastapi==0.115.12
 uvicorn[standard]==0.34.0
 celery[redis]==5.4.0
+kombu>=5.4,<5.6  # 5.6+ needs redis-py>=6.1, which celery[redis] 5.4 does not allow
+packaging>=23.0  # imported by kombu's redis transport
 sqlalchemy[asyncio]==2.0.40
 asyncpg==0.30.0
 psycopg2-binary==2.9.10

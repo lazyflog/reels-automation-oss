@@ -13,16 +13,16 @@ logger = logging.getLogger(__name__)
 
 @celery.task
 def cleanup_temp_dir(job_id: str) -> None:
-    """업로드 완료 후 temp/{job_id}/ 삭제"""
+    """Delete temp/{job_id}/ after upload completes"""
     temp_job_dir = os.path.join(settings.temp_dir, job_id)
     if os.path.exists(temp_job_dir):
         shutil.rmtree(temp_job_dir)
-        logger.info(f"[{job_id}] temp 디렉토리 삭제 완료")
+        logger.info(f"[{job_id}] temp directory deleted")
 
 
 @celery.task
 def cleanup_old_outputs() -> None:
-    """output 파일 7일 후 삭제 (Celery beat 스케줄)"""
+    """Delete output files after 7 days (Celery beat schedule)"""
     cutoff = datetime.utcnow() - timedelta(days=7)
     output_dir = settings.output_dir
 
@@ -38,7 +38,7 @@ def cleanup_old_outputs() -> None:
                 os.remove(filepath)
                 deleted += 1
 
-    logger.info(f"cleanup_old_outputs: {deleted}개 파일 삭제")
+    logger.info(f"cleanup_old_outputs: deleted {deleted} files")
 
     # Source uploads that were never attached to a job (older than 1 day)
     uploads_dir = os.path.join(settings.temp_dir, "uploads")

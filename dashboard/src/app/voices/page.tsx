@@ -7,14 +7,14 @@ export default function VoicesPage() {
   const [items, setItems] = useState<Voice[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 추가 폼
+  // Add form
   const [showForm, setShowForm] = useState(false);
   const [formName, setFormName] = useState("");
   const [formVoiceId, setFormVoiceId] = useState("");
   const [formActive, setFormActive] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // 수정 중인 항목
+  // Item being edited
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editActive, setEditActive] = useState(true);
@@ -49,7 +49,7 @@ export default function VoicesPage() {
       setShowForm(false);
       await fetchItems();
     } catch (e) {
-      alert(`추가 실패: ${e}`);
+      alert(`Failed to add: ${e}`);
     } finally {
       setSaving(false);
     }
@@ -65,19 +65,19 @@ export default function VoicesPage() {
       setEditingId(null);
       await fetchItems();
     } catch (e) {
-      alert(`수정 실패: ${e}`);
+      alert(`Failed to update: ${e}`);
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("삭제하시겠습니까?")) return;
+    if (!confirm("Delete this item?")) return;
     try {
       await api.deleteVoice(id);
       await fetchItems();
     } catch (e) {
-      alert(`삭제 실패: ${e}`);
+      alert(`Failed to delete: ${e}`);
     }
   };
 
@@ -86,7 +86,7 @@ export default function VoicesPage() {
       await api.updateVoice(item.id, { is_active: !item.is_active });
       await fetchItems();
     } catch (e) {
-      alert(`상태 변경 실패: ${e}`);
+      alert(`Failed to change status: ${e}`);
     }
   };
 
@@ -99,27 +99,27 @@ export default function VoicesPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">음성 관리</h1>
+        <h1 className="text-xl font-semibold">Voices</h1>
         <button
           onClick={() => setShowForm(!showForm)}
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg font-medium transition-colors"
         >
-          {showForm ? "취소" : "새 음성 추가"}
+          {showForm ? "Cancel" : "Add voice"}
         </button>
       </div>
 
-      {/* 추가 폼 */}
+      {/* Add form */}
       {showForm && (
         <div className="bg-gray-900 rounded-xl border border-gray-800 p-4 space-y-3">
-          <h3 className="text-sm font-medium text-gray-400">새 음성 추가</h3>
+          <h3 className="text-sm font-medium text-gray-400">Add voice</h3>
           <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-3">
             <label className="flex flex-col gap-1 text-sm text-gray-400">
-              <span>이름</span>
+              <span>Name</span>
               <input
                 type="text"
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
-                placeholder="예: 아담"
+                placeholder="e.g. Adam"
                 className="w-full sm:w-40 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
               />
             </label>
@@ -129,7 +129,7 @@ export default function VoicesPage() {
                 type="text"
                 value={formVoiceId}
                 onChange={(e) => setFormVoiceId(e.target.value)}
-                placeholder="예: pNInz6obpgDQGcFmaJgB"
+                placeholder="e.g. pNInz6obpgDQGcFmaJgB"
                 className="w-full sm:w-64 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 font-mono"
               />
             </label>
@@ -140,35 +140,35 @@ export default function VoicesPage() {
                 onChange={(e) => setFormActive(e.target.checked)}
                 className="rounded"
               />
-              <span>활성</span>
+              <span>Active</span>
             </label>
             <button
               onClick={handleCreate}
               disabled={saving || !formName.trim() || !formVoiceId.trim()}
               className="px-4 py-2 bg-green-700 hover:bg-green-600 disabled:opacity-50 text-white text-sm rounded-lg font-medium transition-colors"
             >
-              {saving ? "저장 중..." : "추가"}
+              {saving ? "Saving…" : "Add"}
             </button>
           </div>
         </div>
       )}
 
-      {/* 목록 */}
+      {/* List */}
       <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-x-auto">
         {loading ? (
-          <div className="text-center py-12 text-gray-500">로딩 중...</div>
+          <div className="text-center py-12 text-gray-500">Loading…</div>
         ) : items.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
-            등록된 음성이 없습니다.
+            No voices yet.
           </div>
         ) : (
           <table className="w-full text-sm min-w-[600px]">
             <thead className="bg-gray-800 text-gray-400">
               <tr>
-                <th className="text-left px-4 py-3">이름</th>
+                <th className="text-left px-4 py-3">Name</th>
                 <th className="text-left px-4 py-3">Voice ID</th>
-                <th className="text-center px-4 py-3 w-16">활성</th>
-                <th className="text-right px-4 py-3 w-28">관리</th>
+                <th className="text-center px-4 py-3 w-16">Active</th>
+                <th className="text-right px-4 py-3 w-28">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800">
@@ -200,13 +200,13 @@ export default function VoicesPage() {
                             disabled={saving}
                             className="text-xs px-2 py-1 bg-green-900/50 hover:bg-green-900 text-green-400 rounded-md"
                           >
-                            저장
+                            Save
                           </button>
                           <button
                             onClick={() => setEditingId(null)}
                             className="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded-md"
                           >
-                            취소
+                            Cancel
                           </button>
                         </div>
                       </td>
@@ -235,13 +235,13 @@ export default function VoicesPage() {
                             onClick={() => startEdit(item)}
                             className="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded-md"
                           >
-                            수정
+                            Edit
                           </button>
                           <button
                             onClick={() => handleDelete(item.id)}
                             className="text-xs px-2 py-1 bg-red-900/50 hover:bg-red-900 text-red-400 rounded-md"
                           >
-                            삭제
+                            Delete
                           </button>
                         </div>
                       </td>

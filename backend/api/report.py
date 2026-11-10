@@ -31,13 +31,13 @@ async def get_report(db: AsyncSession = Depends(get_db), _: str = Depends(verify
     week_count = await count_published(week_start)
     month_count = await count_published(month_start)
 
-    # 상태별 카운트
+    # Counts by status
     status_result = await db.execute(
         select(Job.status, func.count(Job.id)).group_by(Job.status)
     )
     status_counts = {row[0]: row[1] for row in status_result.all()}
 
-    # 최근 게시된 릴스 10개
+    # 10 most recently published reels
     recent_result = await db.execute(
         select(Job)
         .where(Job.status == "published")

@@ -3,9 +3,9 @@
 import { FontFamily } from "@/components/CoverEditorModal";
 
 /**
- * 서버에 설치된 폰트(TTF)를 브라우저에 @font-face로 로드해
- * 표지·자막 라이브 미리보기에서 실제 글꼴이 보이도록 한다.
- * 폰트 파일은 인증된 /api/fonts/file?path= 로 서빙됨(동일 출처라 세션 쿠키 자동 전송).
+ * Loads fonts (TTF) installed on the server into the browser via @font-face
+ * so the cover/subtitle live previews show the actual typeface.
+ * Font files are served from the authenticated /api/fonts/file?path= (same origin, so the session cookie is sent automatically).
  */
 export default function FontFaceLoader({ families }: { families: FontFamily[] }) {
   if (!families.length) return null;

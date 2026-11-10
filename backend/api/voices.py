@@ -56,7 +56,7 @@ async def create_voice(
 ):
     existing = await db.execute(select(Voice).where(Voice.id == req.id))
     if existing.scalar_one_or_none():
-        raise HTTPException(status_code=400, detail="이미 등록된 Voice ID입니다")
+        raise HTTPException(status_code=400, detail="Voice ID is already registered")
 
     voice = Voice(id=req.id, name=req.name, is_active=req.is_active)
     db.add(voice)

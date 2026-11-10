@@ -72,7 +72,7 @@ class PatchJobRequest(BaseModel):
     script: Optional[dict] = None
     caption: Optional[str] = None
     title: Optional[str] = None
-    # 자막 스타일 (작업 상세 자막 편집 모달에서 수정 → 다음 렌더에 반영)
+    # Subtitle style (edited in the job detail subtitle modal → applied on the next render)
     subtitle_color: Optional[str] = None
     subtitle_bg_color: Optional[str] = None
     subtitle_font: Optional[str] = None
@@ -314,10 +314,10 @@ async def download_job(job_id: str, db: AsyncSession = Depends(get_db), _: str =
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     if job.status not in ("awaiting_tts_review", "review_pending", "approved", "uploading", "published"):
-        raise HTTPException(status_code=400, detail=f"아직 준비되지 않은 상태: {job.status}")
+        raise HTTPException(status_code=400, detail=f"Not ready yet: {job.status}")
     file_path = os.path.abspath(job.output_path) if job.output_path else None
     if not file_path or not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail=f"출력 파일 없음: {job.output_path}")
+        raise HTTPException(status_code=404, detail=f"Output file not found: {job.output_path}")
     return FileResponse(
         file_path,
         media_type="video/mp4",
@@ -339,7 +339,7 @@ async def patch_job(job_id: str, body: PatchJobRequest, db: AsyncSession = Depen
     if body.title is not None:
         job.title = body.title
 
-    # 자막 스타일 (빈 문자열은 "배경 없음" 등 명시적 해제로 처리)
+    # Subtitle style (an empty string means an explicit unset, e.g. "no background")
     if body.subtitle_color is not None:
         job.subtitle_color = body.subtitle_color
     if body.subtitle_bg_color is not None:
@@ -376,7 +376,7 @@ async def approve_job(job_id: str, body: ApproveJobRequest, db: AsyncSession = D
         raise HTTPException(status_code=404, detail="Job not found")
 
     if job.status != "review_pending":
-        raise HTTPException(status_code=400, detail=f"승인 불가 상태: {job.status}")
+        raise HTTPException(status_code=400, detail=f"Cannot approve in status: {job.status}")
 
     targets = body.targets
     job.upload_targets = targets
@@ -414,7 +414,7 @@ async def retry_job(job_id: str, db: AsyncSession = Depends(get_db), _: str = De
         raise HTTPException(status_code=404, detail="Job not found")
 
     if job.status not in ("failed", "rejected"):
-        raise HTTPException(status_code=400, detail=f"재시도 불가 상태: {job.status}")
+        raise HTTPException(status_code=400, detail=f"Cannot retry in status: {job.status}")
 
     source_urls = job.source_urls or [job.source_url]
     video_paths = None
@@ -439,7 +439,7 @@ async def get_frames(job_id: str, db: AsyncSession = Depends(get_db), _: str = D
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
 
-    # 사용 가능한 영상 경로 결정
+    # Determine usable video paths
     video_path = None
     if job.video_paths and len(job.video_paths) > 0:
         video_path = job.video_paths[0]
@@ -447,13 +447,13 @@ async def get_frames(job_id: str, db: AsyncSession = Depends(get_db), _: str = D
         video_path = job.video_path
 
     if not video_path or not os.path.exists(video_path):
-        raise HTTPException(status_code=404, detail="영상 파일 없음")
+        raise HTTPException(status_code=404, detail="Video file not found")
 
     from utils.ffmpeg_helper import extract_frames, get_video_info
     output_dir = os.path.join(settings.temp_dir, job_id, "frames")
     count = 10
 
-    # 영상 길이 파악 → interval 계산 → 랜덤 오프셋
+    # Get video duration → compute interval → random offset
     info = get_video_info(video_path)
     duration = float(info.get("format", {}).get("duration", 0))
     if duration <= 0:
@@ -483,12 +483,12 @@ async def get_frame_image(job_id: str, filename: str, _: str = Depends(verify_se
     frame_path = os.path.abspath(
         os.path.join(settings.temp_dir, job_id, "frames", filename)
     )
-    # 경로 탈출 방지
+    # Prevent path traversal
     base = os.path.abspath(settings.temp_dir)
     if not frame_path.startswith(base):
-        raise HTTPException(status_code=400, detail="잘못된 경로")
+        raise HTTPException(status_code=400, detail="Invalid path")
     if not os.path.exists(frame_path):
-        raise HTTPException(status_code=404, detail="프레임 없음")
+        raise HTTPException(status_code=404, detail="Frame not found")
     return FileResponse(frame_path, media_type="image/jpeg")
 
 
@@ -509,7 +509,7 @@ async def set_cover(job_id: str, body: CoverRequest, db: AsyncSession = Depends(
     if body.cover_title_color:
         job.cover_title_color = body.cover_title_color
     if body.cover_title_color2 is not None:
-        job.cover_title_color2 = body.cover_title_color2 or None  # 빈 문자열 → 해제(단일색)
+        job.cover_title_color2 = body.cover_title_color2 or None  # empty string → unset (single color)
     if body.cover_title_position:
         job.cover_title_position = body.cover_title_position
     if body.cover_italic is not None:
@@ -533,8 +533,8 @@ async def set_cover(job_id: str, body: CoverRequest, db: AsyncSession = Depends(
 
 @router.post("/{job_id}/preview-cover")
 async def preview_cover(job_id: str, body: CoverRequest, db: AsyncSession = Depends(get_db), _: str = Depends(verify_session)):
-    """표지 제목/옵션으로 즉시 표지 이미지를 합성해 JPEG로 반환 (DB 미변경).
-    프레임 선택 후 결과를 미리 확인·수정하기 위한 동기 미리보기."""
+    """Composite a cover image from the given title/options and return it as JPEG (DB unchanged).
+    Synchronous preview for checking and tweaking the result after picking a frame."""
     result = await db.execute(select(Job).where(Job.id == job_id))
     job = result.scalar_one_or_none()
     if not job:
@@ -546,11 +546,11 @@ async def preview_cover(job_id: str, body: CoverRequest, db: AsyncSession = Depe
     elif job.video_path:
         video_path = job.video_path
     if not video_path or not os.path.exists(video_path):
-        raise HTTPException(status_code=404, detail="영상 파일 없음")
+        raise HTTPException(status_code=404, detail="Video file not found")
 
     from workers.edit import _generate_cover
     title = (body.cover_title if body.cover_title is not None else job.title) or ""
-    # 요청에 폰트가 오면 우선, 없으면 저장된 표지 폰트 사용
+    # Prefer the font from the request; otherwise use the saved cover font
     font_path = resolve_font(body.cover_font or job.cover_font)
 
     loop = asyncio.get_event_loop()
@@ -570,9 +570,9 @@ async def preview_cover(job_id: str, body: CoverRequest, db: AsyncSession = Depe
             ),
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"표지 미리보기 생성 실패: {e}")
+        raise HTTPException(status_code=500, detail=f"Cover preview generation failed: {e}")
 
-    # 브라우저 캐시 방지 (같은 경로 재사용)
+    # Prevent browser caching (same path is reused)
     return FileResponse(out, media_type="image/jpeg", headers={"Cache-Control": "no-store"})
 
 
@@ -584,7 +584,7 @@ async def approve_tts_review(job_id: str, db: AsyncSession = Depends(get_db), _:
         raise HTTPException(status_code=404, detail="Job not found")
 
     if job.status != "awaiting_tts_review":
-        raise HTTPException(status_code=400, detail=f"TTS 검수 불가 상태: {job.status}")
+        raise HTTPException(status_code=400, detail=f"Cannot review TTS in status: {job.status}")
 
     await db.commit()
 
@@ -600,7 +600,7 @@ async def regenerate_tts(job_id: str, db: AsyncSession = Depends(get_db), _: str
         raise HTTPException(status_code=404, detail="Job not found")
 
     if job.status != "awaiting_tts_review":
-        raise HTTPException(status_code=400, detail=f"TTS 재생성 불가 상태: {job.status}")
+        raise HTTPException(status_code=400, detail=f"Cannot regenerate TTS in status: {job.status}")
 
     video_paths = job.video_paths or ([job.video_path] if job.video_path else [])
     job.status = "tts_processing"
@@ -622,14 +622,14 @@ async def delete_job(job_id: str, db: AsyncSession = Depends(get_db), _: str = D
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
 
-    # temp 파일 정리
+    # Clean up temp files
     cleanup_temp_dir.delay(job_id)
 
     await db.delete(job)
     await db.commit()
 
 
-# ── 폰트 목록 ──────────────────────────────────────────────
+# ── Font list ──────────────────────────────────────────────
 
 @font_router.get("")
 async def get_fonts(_: str = Depends(verify_session)):
@@ -645,7 +645,7 @@ async def serve_font_file(path: str, _: str = Depends(verify_session)):
                         headers={"Cache-Control": "public, max-age=86400"})
 
 
-# ── BGM 목록 & 업로드 ─────────────────────────────────────
+# ── BGM list & upload ─────────────────────────────────────
 
 BGM_EXTENSIONS = {".mp3", ".wav", ".m4a", ".aac", ".ogg"}
 
@@ -695,11 +695,11 @@ async def download_bgm_from_url(body: BgmDownloadRequest, _=Depends(verify_sessi
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([body.url])
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"다운로드 실패: {e}")
-    # yt-dlp가 확장자를 붙이므로 최종 파일명 확인
+        raise HTTPException(status_code=400, detail=f"Download failed: {e}")
+    # yt-dlp appends the extension, so resolve the final file name
     final_path = out_tmpl + ".mp3"
     if not os.path.exists(final_path):
-        raise HTTPException(status_code=500, detail="다운로드된 파일을 찾을 수 없습니다")
+        raise HTTPException(status_code=500, detail="Downloaded file not found")
     return {"filename": filename}
 
 
@@ -707,12 +707,12 @@ async def download_bgm_from_url(body: BgmDownloadRequest, _=Depends(verify_sessi
 async def upload_bgm(file: UploadFile = File(...), _: str = Depends(verify_session)):
     ext = os.path.splitext(file.filename or "")[1].lower()
     if ext not in BGM_EXTENSIONS:
-        raise HTTPException(status_code=400, detail=f"지원하지 않는 형식: {ext}")
+        raise HTTPException(status_code=400, detail=f"Unsupported format: {ext}")
 
     bgm_dir = os.path.abspath(settings.bgm_dir)
     os.makedirs(bgm_dir, exist_ok=True)
 
-    # 파일명 안전 처리
+    # Sanitize the file name
     safe_name = os.path.basename(file.filename or "upload").replace(" ", "_")
     dest = os.path.join(bgm_dir, safe_name)
 
@@ -729,13 +729,13 @@ async def stream_bgm(filename: str, _=Depends(verify_session)):
     safe_name = os.path.basename(filename)
     path = os.path.join(bgm_dir, safe_name)
     if not path.startswith(bgm_dir) or not os.path.exists(path):
-        raise HTTPException(status_code=404, detail="BGM 파일 없음")
+        raise HTTPException(status_code=404, detail="BGM file not found")
     return FileResponse(path, media_type="audio/mpeg")
 
 
-# ── TTS 미리듣기 ──────────────────────────────────────────
+# ── TTS voice preview ──────────────────────────────────────────
 
-PREVIEW_TEXT = "음성 미리듣기 기능입니다. 어떤가요?"
+PREVIEW_TEXT = "This is a voice preview. How does it sound?"
 
 
 class TtsPreviewRequest(BaseModel):
@@ -748,7 +748,7 @@ class TtsPreviewRequest(BaseModel):
 async def tts_preview(body: TtsPreviewRequest, _=Depends(verify_session)):
     cache_dir = os.path.join(settings.temp_dir, "tts_preview")
     os.makedirs(cache_dir, exist_ok=True)
-    # 속도·볼륨 조합별로 캐시 분리 (볼륨은 합성 후 ffmpeg 후처리로 반영)
+    # Cache separately per speed/volume combo (volume is applied by ffmpeg post-processing after synthesis)
     cache_key = f"{body.voice_id}_{body.speed:.2f}_v{body.voice_volume:.2f}"
     cache_path = os.path.join(cache_dir, f"{cache_key}.mp3")
 
@@ -757,7 +757,7 @@ async def tts_preview(body: TtsPreviewRequest, _=Depends(verify_session)):
         await loop.run_in_executor(
             None, synthesize_tts, PREVIEW_TEXT, cache_path, body.voice_id, body.speed
         )
-        # ElevenLabs는 볼륨 파라미터를 지원하지 않으므로 합성 후 후처리로 적용
+        # ElevenLabs has no volume parameter, so apply it in post-processing after synthesis
         if abs(body.voice_volume - 1.0) > 1e-3:
             await loop.run_in_executor(
                 None, _apply_volume_to_audio, cache_path, body.voice_volume

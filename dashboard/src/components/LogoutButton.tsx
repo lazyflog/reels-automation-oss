@@ -15,7 +15,7 @@ export default function LogoutButton() {
       onClick={handleLogout}
       className="text-gray-400 hover:text-white text-sm transition-colors"
     >
-      로그아웃
+      Log out
     </button>
   );
 }

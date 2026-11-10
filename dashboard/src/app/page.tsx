@@ -37,26 +37,26 @@ function FontPreview({ fontPath }: { fontPath: string }) {
       className="text-sm text-gray-400 mt-1.5 px-1"
       style={{ fontFamily: loaded ? `"${getFontFamilyId(fontPath)}", sans-serif` : "inherit" }}
     >
-      가나다라 ABC 123
+      Aa Bb Cc 123
     </p>
   );
 }
 
 const STATUS_FILTERS = [
-  { label: "전체", value: "" },
-  { label: "검수 대기", value: "review_pending" },
-  { label: "TTS 검수", value: "awaiting_tts_review" },
-  { label: "처리 중", value: "extracting" },
-  { label: "게시됨", value: "published" },
-  { label: "실패", value: "failed" },
+  { label: "All", value: "" },
+  { label: "Awaiting review", value: "review_pending" },
+  { label: "TTS review", value: "awaiting_tts_review" },
+  { label: "Processing", value: "extracting" },
+  { label: "Published", value: "published" },
+  { label: "Failed", value: "failed" },
 ];
 
 const STEPS = [
-  { label: "다운로드 중", statuses: ["pending", "extracting", "extracted"] },
-  { label: "분석 중", statuses: ["analyzing", "analyzed", "removing_watermarks", "watermarks_removed"] },
-  { label: "대본·음성 생성", statuses: ["generating", "generated", "tts_pending", "tts_processing", "tts_done"] },
-  { label: "편집 중", statuses: ["editing", "awaiting_tts_review"] },
-  { label: "완료!", statuses: ["review_pending", "approved", "uploading", "published"] },
+  { label: "Downloading", statuses: ["pending", "extracting", "extracted"] },
+  { label: "Analyzing", statuses: ["analyzing", "analyzed", "removing_watermarks", "watermarks_removed"] },
+  { label: "Script & voice", statuses: ["generating", "generated", "tts_pending", "tts_processing", "tts_done"] },
+  { label: "Editing", statuses: ["editing", "awaiting_tts_review"] },
+  { label: "Done!", statuses: ["review_pending", "approved", "uploading", "published"] },
 ];
 
 const STEP_ICONS = ["⏳", "🔍", "📝", "🎬", "✅"];
@@ -98,18 +98,18 @@ function ActiveJobPanel({ jobId, onDone }: { jobId: string; onDone: () => void }
   return (
     <div className="bg-gray-900 rounded-xl p-5 border border-blue-800">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-medium text-blue-400">진행 중인 작업</h2>
+        <h2 className="text-sm font-medium text-blue-400">Jobs in progress</h2>
         <button onClick={onDone} className="text-xs text-gray-500 hover:text-gray-300">
-          닫기
+          Close
         </button>
       </div>
       <p className="text-xs text-gray-500 mb-4 truncate">
-        {job.source_urls?.length > 1 ? `${job.source_urls[0]} 외 ${job.source_urls.length - 1}개` : job.source_url}
+        {job.source_urls?.length > 1 ? `${job.source_urls[0]} +${job.source_urls.length - 1} more` : job.source_url}
       </p>
 
       {failed ? (
         <div className="text-red-400 text-sm">
-          처리 실패: {job.error_message || "알 수 없는 오류"}
+          Processing failed: {job.error_message || "Unknown error"}
         </div>
       ) : (
         <>
@@ -146,13 +146,13 @@ function ActiveJobPanel({ jobId, onDone }: { jobId: string; onDone: () => void }
                 download={`${job.id}.mp4`}
                 className="inline-block bg-green-600 hover:bg-green-700 text-white text-sm px-5 py-2 rounded-lg font-medium transition-colors"
               >
-                mp4 다운로드
+                Download MP4
               </a>
               <a
                 href={`/jobs/${job.id}`}
                 className="inline-block bg-blue-600 hover:bg-blue-700 text-white text-sm px-5 py-2 rounded-lg font-medium transition-colors"
               >
-                상세보기
+                View details
               </a>
             </div>
           )}
@@ -201,7 +201,7 @@ export default function HomePage() {
     });
   };
 
-  // 라이브러리 참조
+  // Library references
   const [hookExamples, setHookExamples] = useState<LibraryItem[]>([]);
   const [ctaExamples, setCtaExamples] = useState<LibraryItem[]>([]);
   const [showHooks, setShowHooks] = useState(false);
@@ -284,7 +284,7 @@ export default function HomePage() {
       setBgmList(newList);
       updateSettings({ bgmFilename: res.filename });
     } catch (err) {
-      alert(`업로드 실패: ${err}`);
+      alert(`Upload failed: ${err}`);
     } finally {
       setUploadingBgm(false);
       if (bgmUploadRef.current) bgmUploadRef.current.value = "";
@@ -301,7 +301,7 @@ export default function HomePage() {
       updateSettings({ bgmFilename: res.filename });
       setBgmUrl("");
     } catch (err) {
-      alert(`BGM 다운로드 실패: ${err}`);
+      alert(`BGM download failed: ${err}`);
     } finally {
       setDownloadingBgm(false);
     }
@@ -324,7 +324,7 @@ export default function HomePage() {
       ttsAudioRef.current = audio;
       await audio.play();
     } catch (err) {
-      alert(`미리듣기 실패: ${err}`);
+      alert(`Preview failed: ${err}`);
     } finally {
       setPreviewingTts(false);
     }
@@ -346,7 +346,7 @@ export default function HomePage() {
     }
   };
 
-  // BGM 변경 시 정지
+  // Stop playback when BGM changes
   useEffect(() => {
     const audio = bgmAudioRef.current;
     if (audio) {
@@ -356,7 +356,7 @@ export default function HomePage() {
     }
   }, [settings.bgmFilename]);
 
-  // voice/speed 변경 시 이전 재생 정지
+  // Stop previous playback when voice/speed changes
   useEffect(() => {
     if (ttsAudioRef.current) {
       ttsAudioRef.current.pause();
@@ -364,7 +364,7 @@ export default function HomePage() {
     }
   }, [settings.voiceId, settings.ttsSpeed]);
 
-  // Canvas 자막 미리보기
+  // Canvas subtitle preview
   const subtitlePositionY = useMemo(() => {
     const legacy: Record<string, number> = {
       top: 0.05, upper: 0.25, middle: 0.45, lower: 0.65, bottom: 0.85,
@@ -382,11 +382,11 @@ export default function HomePage() {
     const w = canvas.width;
     const h = canvas.height;
 
-    // 배경
+    // Background
     ctx.fillStyle = "#1a1a2e";
     ctx.fillRect(0, 0, w, h);
 
-    // 가이드 라인
+    // Guide line
     ctx.strokeStyle = "#333";
     ctx.setLineDash([4, 4]);
     ctx.beginPath();
@@ -395,7 +395,7 @@ export default function HomePage() {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // 자막 배경
+    // Subtitle background
     const textY = h * subtitlePositionY;
     const textH = 24;
     const textW = 120;
@@ -405,7 +405,7 @@ export default function HomePage() {
       ctx.fillRect(textX - 4, textY - textH / 2 - 2, textW + 8, textH + 4);
     }
 
-    // 자막 그림자
+    // Subtitle shadow
     const previewSize = Math.max(10, Math.round(settings.subtitleFontSize * 16 / 64));
     const weight = settings.subtitleBold ? "bold" : "normal";
     const fontStyle = settings.subtitleItalic ? "italic " : "";
@@ -418,19 +418,19 @@ export default function HomePage() {
         ctx.filter = `blur(${settings.subtitleShadowBlur}px)`;
       }
       ctx.fillStyle = settings.subtitleShadowColor;
-      ctx.fillText("자막 미리보기", w / 2, textY + settings.subtitleShadowOffset);
+      ctx.fillText("Subtitle preview", w / 2, textY + settings.subtitleShadowOffset);
       ctx.restore();
     }
 
-    // 자막 텍스트 (테두리 + 채우기)
+    // Subtitle text (outline + fill)
     if (settings.subtitleStrokeWidth > 0) {
       ctx.strokeStyle = settings.subtitleStrokeColor;
       ctx.lineWidth = settings.subtitleStrokeWidth;
       ctx.lineJoin = "round";
-      ctx.strokeText("자막 미리보기", w / 2, textY);
+      ctx.strokeText("Subtitle preview", w / 2, textY);
     }
     ctx.fillStyle = settings.subtitleColor;
-    ctx.fillText("자막 미리보기", w / 2, textY);
+    ctx.fillText("Subtitle preview", w / 2, textY);
   }, [settings.subtitleColor, settings.subtitleBgColor, settings.subtitleBgEnabled, subtitlePositionY,
       settings.subtitleShadowColor, settings.subtitleShadowOffset, settings.subtitleShadowBlur,
       settings.subtitleStrokeColor, settings.subtitleStrokeWidth,
@@ -490,7 +490,7 @@ export default function HomePage() {
       setDescription("");
       await fetchJobs();
     } catch (err: unknown) {
-      alert(`오류: ${err instanceof Error ? err.message : String(err)}`);
+      alert(`Error: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setSubmitting(false);
       setUploadProgress("");
@@ -498,7 +498,7 @@ export default function HomePage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("삭제하시겠습니까?")) return;
+    if (!confirm("Delete this job?")) return;
     await api.deleteJob(id);
     if (activeJobId === id) setActiveJobId(null);
     await fetchJobs();
@@ -506,11 +506,11 @@ export default function HomePage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      {/* URL 입력 */}
+      {/* Job input */}
       <div className="bg-gray-900 rounded-xl p-5 border border-gray-800">
-        <h2 className="text-lg font-semibold mb-1">새 작업 추가</h2>
+        <h2 className="text-lg font-semibold mb-1">New job</h2>
         <p className="text-xs text-gray-500 mb-4">
-          같은 제품의 영상을 여러 개 입력하면 하나의 릴스로 합성됩니다 (최대 10개)
+          Add multiple clips of the same product to combine them into one Reel (up to 10)
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           {/* Source: upload your own footage (default) or import from URLs */}
@@ -585,7 +585,7 @@ export default function HomePage() {
                     type="button"
                     onClick={() => removeUrl(i)}
                     className="text-gray-500 hover:text-red-400 px-2 text-lg"
-                    title="URL 제거"
+                    title="Remove URL"
                   >
                     ×
                   </button>
@@ -598,13 +598,13 @@ export default function HomePage() {
                 onClick={addUrl}
                 className="text-xs text-blue-400 hover:text-blue-300 self-start px-2 py-1"
               >
-                + URL 추가
+                + Add URL
               </button>
             )}
           </div>
           )}
 
-          {/* 페르소나 + 제출 */}
+          {/* Persona + submit */}
           <div className="flex gap-3 flex-wrap">
             <select
               value={settings.persona}
@@ -621,30 +621,30 @@ export default function HomePage() {
               disabled={submitting}
               className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors"
             >
-              {submitting ? (uploadProgress || "처리 중...") : "작업 추가"}
+              {submitting ? (uploadProgress || "Processing…") : "Add job"}
             </button>
           </div>
 
-          {/* 음성 설정 섹션 */}
+          {/* Voice settings section */}
           <div className="rounded-lg overflow-hidden">
             <button
               type="button"
               onClick={() => toggleSection("voice")}
               className="w-full flex items-center justify-between bg-gray-800/50 rounded-lg px-4 py-2 cursor-pointer hover:bg-gray-800 transition-colors"
             >
-              <span className="text-sm font-medium text-gray-300">음성 설정</span>
+              <span className="text-sm font-medium text-gray-300">Voice settings</span>
               <span className="text-gray-500 text-xs">{openSections.has("voice") ? "▼" : "▶"}</span>
             </button>
             {openSections.has("voice") && (
               <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 px-4 py-3">
                 <label className="flex items-center gap-2 text-sm text-gray-400">
-                  <span>목소리</span>
+                  <span>Voice</span>
                   <select
                     value={settings.voiceId}
                     onChange={(e) => updateSettings({ voiceId: e.target.value })}
                     className="w-full sm:w-36 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500"
                   >
-                    {voices.length === 0 && <option value="">음성 없음</option>}
+                    {voices.length === 0 && <option value="">No voices</option>}
                     {voices.map((v) => (
                       <option key={v.id} value={v.id}>{v.name}</option>
                     ))}
@@ -656,10 +656,10 @@ export default function HomePage() {
                   disabled={previewingTts}
                   className="text-xs px-3 py-1.5 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 rounded-lg text-gray-300"
                 >
-                  {previewingTts ? "로딩..." : "미리듣기"}
+                  {previewingTts ? "Loading…" : "Preview"}
                 </button>
                 <label className="flex items-center gap-2 text-sm text-gray-400">
-                  <span>볼륨</span>
+                  <span>Volume</span>
                   <input
                     type="range"
                     min="0"
@@ -672,7 +672,7 @@ export default function HomePage() {
                   <span className="text-xs w-8">{Math.round(settings.voiceVolume * 100)}%</span>
                 </label>
                 <label className="flex items-center gap-2 text-sm text-gray-400">
-                  <span>속도</span>
+                  <span>Speed</span>
                   <input
                     type="range"
                     min="0.7"
@@ -688,21 +688,21 @@ export default function HomePage() {
             )}
           </div>
 
-          {/* 자막 설정 섹션 */}
+          {/* Subtitle settings section */}
           <div className="rounded-lg overflow-hidden">
             <button
               type="button"
               onClick={() => toggleSection("subtitle")}
               className="w-full flex items-center justify-between bg-gray-800/50 rounded-lg px-4 py-2 cursor-pointer hover:bg-gray-800 transition-colors"
             >
-              <span className="text-sm font-medium text-gray-300">자막 설정</span>
+              <span className="text-sm font-medium text-gray-300">Subtitle settings</span>
               <span className="text-gray-500 text-xs">{openSections.has("subtitle") ? "▼" : "▶"}</span>
             </button>
             {openSections.has("subtitle") && (
               <div className="flex flex-col gap-3 px-4 py-3">
                 <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3">
                   <label className="flex items-center gap-2 text-sm text-gray-400">
-                    <span>색상</span>
+                    <span>Color</span>
                     <input
                       type="color"
                       value={settings.subtitleColor}
@@ -729,7 +729,7 @@ export default function HomePage() {
                     <span className="italic font-serif">I</span>
                   </label>
                   <label className="flex items-center gap-2 text-sm text-gray-400">
-                    <span>크기</span>
+                    <span>Size</span>
                     <input
                       type="range"
                       min="32"
@@ -748,7 +748,7 @@ export default function HomePage() {
                       onChange={(e) => updateSettings({ subtitleBgEnabled: e.target.checked })}
                       className="rounded"
                     />
-                    <span>배경</span>
+                    <span>Background</span>
                   </label>
                   {settings.subtitleBgEnabled && (
                     <input
@@ -759,7 +759,7 @@ export default function HomePage() {
                     />
                   )}
                   <label className="flex items-center gap-2 text-sm text-gray-400">
-                    <span>테두리</span>
+                    <span>Outline</span>
                     <input
                       type="color"
                       value={settings.subtitleStrokeColor}
@@ -768,7 +768,7 @@ export default function HomePage() {
                     />
                   </label>
                   <label className="flex items-center gap-2 text-sm text-gray-400">
-                    <span>두께</span>
+                    <span>Width</span>
                     <input
                       type="range"
                       min="0"
@@ -783,7 +783,7 @@ export default function HomePage() {
                 </div>
                 <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3">
                   <label className="flex items-center gap-2 text-sm text-gray-400">
-                    <span>그림자</span>
+                    <span>Shadow</span>
                     <input
                       type="color"
                       value={settings.subtitleShadowColor}
@@ -792,7 +792,7 @@ export default function HomePage() {
                     />
                   </label>
                   <label className="flex items-center gap-2 text-sm text-gray-400">
-                    <span>오프셋</span>
+                    <span>Offset</span>
                     <input
                       type="range"
                       min="1"
@@ -805,7 +805,7 @@ export default function HomePage() {
                     <span className="text-xs w-4">{settings.subtitleShadowOffset}</span>
                   </label>
                   <label className="flex items-center gap-2 text-sm text-gray-400">
-                    <span>블러</span>
+                    <span>Blur</span>
                     <input
                       type="range"
                       min="0"
@@ -818,11 +818,11 @@ export default function HomePage() {
                     <span className="text-xs w-4">{settings.subtitleShadowBlur}</span>
                   </label>
                 </div>
-                {/* 자막 위치 슬라이더 + Canvas 미리보기 */}
+                {/* Subtitle position slider + canvas preview */}
                 <div className="flex gap-4 items-start flex-wrap">
                   <div className="flex flex-col gap-2">
                     <label className="flex items-center gap-2 text-sm text-gray-400">
-                      <span>위치</span>
+                      <span>Position</span>
                       <input
                         type="range"
                         min="1"
@@ -846,14 +846,14 @@ export default function HomePage() {
             )}
           </div>
 
-          {/* BGM 설정 섹션 */}
+          {/* BGM settings section */}
           <div className="rounded-lg overflow-hidden">
             <button
               type="button"
               onClick={() => toggleSection("bgm")}
               className="w-full flex items-center justify-between bg-gray-800/50 rounded-lg px-4 py-2 cursor-pointer hover:bg-gray-800 transition-colors"
             >
-              <span className="text-sm font-medium text-gray-300">BGM 설정</span>
+              <span className="text-sm font-medium text-gray-300">BGM settings</span>
               <span className="text-gray-500 text-xs">{openSections.has("bgm") ? "▼" : "▶"}</span>
             </button>
             {openSections.has("bgm") && (
@@ -865,7 +865,7 @@ export default function HomePage() {
                     onChange={(e) => updateSettings({ bgmFilename: e.target.value || null })}
                     className="w-full sm:w-44 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500"
                   >
-                    <option value="">없음</option>
+                    <option value="">None</option>
                     {bgmList.map((f) => (
                       <option key={f} value={f}>{f}</option>
                     ))}
@@ -877,7 +877,7 @@ export default function HomePage() {
                     onClick={handleBgmToggle}
                     className="text-xs px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg text-gray-300"
                   >
-                    {bgmPlaying ? "정지" : "미리듣기"}
+                    {bgmPlaying ? "Stop" : "Preview"}
                   </button>
                 )}
                 <audio
@@ -894,7 +894,7 @@ export default function HomePage() {
                   onEnded={() => setBgmPlaying(false)}
                 />
                 <label className="flex items-center gap-2 text-sm text-gray-400">
-                  <span>볼륨</span>
+                  <span>Volume</span>
                   <input
                     type="range"
                     min="0"
@@ -912,7 +912,7 @@ export default function HomePage() {
                   disabled={uploadingBgm}
                   className="text-xs px-3 py-1.5 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 rounded-lg text-gray-300"
                 >
-                  {uploadingBgm ? "업로드 중..." : "업로드"}
+                  {uploadingBgm ? "Uploading…" : "Upload"}
                 </button>
                 <input
                   ref={bgmUploadRef}
@@ -935,14 +935,14 @@ export default function HomePage() {
                   disabled={downloadingBgm || !bgmUrl.trim()}
                   className="text-xs px-3 py-1.5 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 rounded-lg text-gray-300"
                 >
-                  {downloadingBgm ? "다운로드 중..." : "URL 추가"}
+                  {downloadingBgm ? "Downloading…" : "Add URL"}
                 </button>
                 </>)}
               </div>
             )}
           </div>
 
-          {/* 폰트 설정 섹션 */}
+          {/* Font settings section */}
           {(fontFamilies.length > 0 || fontList.length > 0) && (
             <div className="rounded-lg overflow-hidden">
               <button
@@ -950,14 +950,14 @@ export default function HomePage() {
                 onClick={() => toggleSection("font")}
                 className="w-full flex items-center justify-between bg-gray-800/50 rounded-lg px-4 py-2 cursor-pointer hover:bg-gray-800 transition-colors"
               >
-                <span className="text-sm font-medium text-gray-300">폰트 설정</span>
+                <span className="text-sm font-medium text-gray-300">Font settings</span>
                 <span className="text-gray-500 text-xs">{openSections.has("font") ? "▼" : "▶"}</span>
               </button>
               {openSections.has("font") && (() => {
                 return (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-4 py-3">
                     <div>
-                      <p className="text-sm text-gray-400 mb-1">자막 폰트</p>
+                      <p className="text-sm text-gray-400 mb-1">Subtitle font</p>
                       <select
                         value={settings.subtitleFont || ""}
                         onChange={(e) => updateSettings({ subtitleFont: e.target.value })}
@@ -970,7 +970,7 @@ export default function HomePage() {
                       <FontPreview fontPath={settings.subtitleFont} />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-400 mb-1">표지 폰트</p>
+                      <p className="text-sm text-gray-400 mb-1">Cover font</p>
                       <select
                         value={settings.coverFont}
                         onChange={(e) => updateSettings({ coverFont: e.target.value })}
@@ -989,42 +989,42 @@ export default function HomePage() {
           )}
 
           <textarea
-            placeholder="상품 설명 (선택) — 예: 천연 성분 모이스처라이저, 민감성 피부 전용..."
+            placeholder="Product description (optional) — e.g. natural-ingredient moisturizer for sensitive skin…"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
             className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500 resize-none"
           />
 
-          {/* 라이브러리 참조 */}
+          {/* Library references */}
           <div className="flex gap-2 flex-wrap items-start">
             <button
               type="button"
               onClick={() => showHooks ? setShowHooks(false) : fetchHookExamples()}
               className="text-xs px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg text-gray-300"
             >
-              {showHooks ? "훅 예시 닫기" : "훅 예시 보기"}
+              {showHooks ? "Hide hook examples" : "Show hook examples"}
             </button>
             <button
               type="button"
               onClick={() => showCtas ? setShowCtas(false) : fetchCtaExamples()}
               className="text-xs px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg text-gray-300"
             >
-              {showCtas ? "CTA 예시 닫기" : "CTA 예시 보기"}
+              {showCtas ? "Hide CTA examples" : "Show CTA examples"}
             </button>
             <a
               href="/library"
               className="text-xs px-3 py-1.5 text-blue-400 hover:text-blue-300"
             >
-              라이브러리 관리 →
+              Manage library →
             </a>
           </div>
           {showHooks && (
             <div className="bg-gray-800/50 rounded-lg p-3">
-              <p className="text-xs text-gray-500 mb-2">등록된 훅 예시 (참고용)</p>
+              <p className="text-xs text-gray-500 mb-2">Saved hook examples (for reference)</p>
               {hookExamples.length === 0 ? (
                 <p className="text-xs text-gray-600">
-                  등록된 훅이 없습니다. <a href="/library" className="text-blue-400 hover:underline">/library에서 추가</a>
+                  No hooks yet. <a href="/library" className="text-blue-400 hover:underline">Add in /library</a>
                 </p>
               ) : (
                 <ul className="space-y-1">
@@ -1041,10 +1041,10 @@ export default function HomePage() {
           )}
           {showCtas && (
             <div className="bg-gray-800/50 rounded-lg p-3">
-              <p className="text-xs text-gray-500 mb-2">등록된 CTA 예시 (참고용)</p>
+              <p className="text-xs text-gray-500 mb-2">Saved CTA examples (for reference)</p>
               {ctaExamples.length === 0 ? (
                 <p className="text-xs text-gray-600">
-                  등록된 CTA가 없습니다. <a href="/library" className="text-blue-400 hover:underline">/library에서 추가</a>
+                  No CTAs yet. <a href="/library" className="text-blue-400 hover:underline">Add in /library</a>
                 </p>
               ) : (
                 <ul className="space-y-1">
@@ -1062,12 +1062,12 @@ export default function HomePage() {
         </form>
       </div>
 
-      {/* 실시간 진행 상태 */}
+      {/* Live progress */}
       {activeJobId && (
         <ActiveJobPanel jobId={activeJobId} onDone={() => setActiveJobId(null)} />
       )}
 
-      {/* 필터 */}
+      {/* Filters */}
       <div className="flex gap-2 flex-wrap">
         {STATUS_FILTERS.map((f) => (
           <button
@@ -1083,19 +1083,19 @@ export default function HomePage() {
           </button>
         ))}
         <span className="ml-auto text-gray-500 text-sm self-center">
-          총 {data?.total ?? 0}개
+          {data?.total ?? 0} total
         </span>
       </div>
 
-      {/* 작업 목록 */}
+      {/* Job list */}
       <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
         <table className="w-full text-sm hidden sm:table">
           <thead className="bg-gray-800 text-gray-400">
             <tr>
               <th className="text-left px-4 py-3">URL</th>
-              <th className="text-left px-4 py-3">플랫폼</th>
-              <th className="text-left px-4 py-3">상태</th>
-              <th className="text-left px-4 py-3">생성일</th>
+              <th className="text-left px-4 py-3">Platform</th>
+              <th className="text-left px-4 py-3">Status</th>
+              <th className="text-left px-4 py-3">Created</th>
               <th className="px-4 py-3"></th>
             </tr>
           </thead>
@@ -1103,7 +1103,7 @@ export default function HomePage() {
             {data?.items.length === 0 && (
               <tr>
                 <td colSpan={5} className="text-center py-12 text-gray-500">
-                  작업이 없습니다
+                  No jobs yet
                 </td>
               </tr>
             )}
@@ -1116,7 +1116,7 @@ export default function HomePage() {
                     title={job.source_urls?.join(", ") || job.source_url}
                   >
                     {job.source_urls && job.source_urls.length > 1
-                      ? `${job.source_urls[0]} 외 ${job.source_urls.length - 1}개`
+                      ? `${job.source_urls[0]} +${job.source_urls.length - 1} more`
                       : job.source_url}
                   </a>
                 </td>
@@ -1134,20 +1134,20 @@ export default function HomePage() {
                       download={`${job.id}.mp4`}
                       className="text-xs px-3 py-1 bg-green-900/50 hover:bg-green-900 text-green-400 rounded-md transition-colors"
                     >
-                      다운로드
+                      Download
                     </a>
                   )}
                   <a
                     href={`/jobs/${job.id}`}
                     className="text-xs px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
                   >
-                    상세
+                    Details
                   </a>
                   <button
                     onClick={() => handleDelete(job.id)}
                     className="text-xs px-3 py-1 bg-red-900/50 hover:bg-red-900 text-red-400 rounded-md transition-colors"
                   >
-                    삭제
+                    Delete
                   </button>
                 </td>
               </tr>
@@ -1155,10 +1155,10 @@ export default function HomePage() {
           </tbody>
         </table>
 
-        {/* 모바일 카드 리스트 */}
+        {/* Mobile card list */}
         <div className="sm:hidden divide-y divide-gray-800">
           {data?.items.length === 0 && (
-            <p className="text-center py-12 text-gray-500">작업이 없습니다</p>
+            <p className="text-center py-12 text-gray-500">No jobs yet</p>
           )}
           {data?.items.map((job: Job) => (
             <div key={job.id} className="p-4 space-y-2">
@@ -1168,7 +1168,7 @@ export default function HomePage() {
                 title={job.source_urls?.join(", ") || job.source_url}
               >
                 {job.source_urls && job.source_urls.length > 1
-                  ? `${job.source_urls[0]} 외 ${job.source_urls.length - 1}개`
+                  ? `${job.source_urls[0]} +${job.source_urls.length - 1} more`
                   : job.source_url}
               </a>
               <div className="flex items-center gap-2 text-xs text-gray-500">
@@ -1183,20 +1183,20 @@ export default function HomePage() {
                     download={`${job.id}.mp4`}
                     className="text-xs px-3 py-1 bg-green-900/50 hover:bg-green-900 text-green-400 rounded-md transition-colors"
                   >
-                    다운로드
+                    Download
                   </a>
                 )}
                 <a
                   href={`/jobs/${job.id}`}
                   className="text-xs px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
                 >
-                  상세
+                  Details
                 </a>
                 <button
                   onClick={() => handleDelete(job.id)}
                   className="text-xs px-3 py-1 bg-red-900/50 hover:bg-red-900 text-red-400 rounded-md transition-colors"
                 >
-                  삭제
+                  Delete
                 </button>
               </div>
             </div>
@@ -1204,7 +1204,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* 페이징 */}
+      {/* Pagination */}
       {data && data.total > 20 && (
         <div className="flex gap-2 justify-center">
           <button
@@ -1212,7 +1212,7 @@ export default function HomePage() {
             disabled={page === 1}
             className="px-4 py-2 bg-gray-800 hover:bg-gray-700 disabled:opacity-40 rounded-lg text-sm"
           >
-            이전
+            Previous
           </button>
           <span className="px-4 py-2 text-gray-400 text-sm">
             {page} / {Math.ceil(data.total / 20)}
@@ -1222,7 +1222,7 @@ export default function HomePage() {
             disabled={page >= Math.ceil(data.total / 20)}
             className="px-4 py-2 bg-gray-800 hover:bg-gray-700 disabled:opacity-40 rounded-lg text-sm"
           >
-            다음
+            Next
           </button>
         </div>
       )}

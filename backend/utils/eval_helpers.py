@@ -1,4 +1,4 @@
-"""Tier 1 Evals: 대본 LLM 평가 + TTS 길이 검증 + 영상 품질 검사"""
+"""Tier 1 evals: LLM script evaluation + TTS duration check + video quality check"""
 import json
 import logging
 import subprocess
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def merge_eval_scores(job_id: str, category: str, scores: dict) -> None:
-    """Job.eval_scores JSON에 카테고리별 결과 병합."""
+    """Merge per-category results into the Job.eval_scores JSON."""
     with SyncSessionLocal() as db:
         job = db.query(Job).filter(Job.id == job_id).first()
         if not job:
@@ -28,7 +28,7 @@ def merge_eval_scores(job_id: str, category: str, scores: dict) -> None:
 
 
 def evaluate_script(script: dict, persona: str | None, target_seconds: int) -> dict:
-    """GPT-5.2 LLM-as-Judge로 대본 품질 평가. reasoning=none으로 빠르고 저렴."""
+    """Evaluate script quality with GPT-5.2 as LLM-as-Judge. reasoning=none keeps it fast and cheap."""
     from openai import OpenAI
 
     client = OpenAI(api_key=settings.openai_api_key)
@@ -52,11 +52,11 @@ def evaluate_script(script: dict, persona: str | None, target_seconds: int) -> d
 
 
 def validate_output_video(output_path: str, expected_duration: float) -> dict:
-    """ffprobe로 실제 duration 확인 + ffmpeg blackdetect로 검은 화면 탐지."""
+    """Check the actual duration with ffprobe + detect black frames with ffmpeg blackdetect."""
     result = {"has_black_frames": False, "actual_duration": 0.0,
               "audio_video_sync": True}
 
-    # 1. ffprobe: 실제 duration
+    # 1. ffprobe: actual duration
     try:
         probe = subprocess.run(
             ["ffprobe", "-v", "quiet", "-print_format", "json",
@@ -68,9 +68,9 @@ def validate_output_video(output_path: str, expected_duration: float) -> dict:
         result["actual_duration"] = round(actual_duration, 2)
         result["audio_video_sync"] = abs(actual_duration - expected_duration) < 2.0
     except Exception as e:
-        logger.warning(f"ffprobe 실패: {e}")
+        logger.warning(f"ffprobe failed: {e}")
 
-    # 2. ffmpeg blackdetect: 0.5초 이상 검은 화면 탐지
+    # 2. ffmpeg blackdetect: detect black screens of 0.5s or longer
     try:
         bd = subprocess.run(
             ["ffmpeg", "-i", output_path,
@@ -82,6 +82,6 @@ def validate_output_video(output_path: str, expected_duration: float) -> dict:
         if "black_start" in stderr:
             result["has_black_frames"] = True
     except Exception as e:
-        logger.warning(f"blackdetect 실패: {e}")
+        logger.warning(f"blackdetect failed: {e}")
 
     return result

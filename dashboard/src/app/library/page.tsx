@@ -4,9 +4,9 @@ import { useEffect, useState, useCallback } from "react";
 import { api, LibraryItem, Persona } from "@/lib/api";
 
 const CATEGORIES = [
-  { label: "훅", value: "hook" },
+  { label: "Hook", value: "hook" },
   { label: "CTA", value: "cta" },
-  { label: "대본", value: "script" },
+  { label: "Script", value: "script" },
 ];
 
 export default function LibraryPage() {
@@ -21,14 +21,14 @@ export default function LibraryPage() {
       .catch(() => {});
   }, []);
 
-  // 추가 폼
+  // Add form
   const [showForm, setShowForm] = useState(false);
   const [formContent, setFormContent] = useState("");
   const [formPersona, setFormPersona] = useState("");
   const [formActive, setFormActive] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // 수정 중인 항목
+  // Item being edited
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
   const [editPersona, setEditPersona] = useState("");
@@ -66,7 +66,7 @@ export default function LibraryPage() {
       setShowForm(false);
       await fetchItems();
     } catch (e) {
-      alert(`추가 실패: ${e}`);
+      alert(`Failed to add: ${e}`);
     } finally {
       setSaving(false);
     }
@@ -83,19 +83,19 @@ export default function LibraryPage() {
       setEditingId(null);
       await fetchItems();
     } catch (e) {
-      alert(`수정 실패: ${e}`);
+      alert(`Failed to update: ${e}`);
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("삭제하시겠습니까?")) return;
+    if (!confirm("Delete this item?")) return;
     try {
       await api.deleteLibrary(id);
       await fetchItems();
     } catch (e) {
-      alert(`삭제 실패: ${e}`);
+      alert(`Failed to delete: ${e}`);
     }
   };
 
@@ -104,7 +104,7 @@ export default function LibraryPage() {
       await api.updateLibrary(item.id, { is_active: !item.is_active });
       await fetchItems();
     } catch (e) {
-      alert(`상태 변경 실패: ${e}`);
+      alert(`Failed to change status: ${e}`);
     }
   };
 
@@ -118,16 +118,16 @@ export default function LibraryPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">프롬프트 라이브러리</h1>
+        <h1 className="text-xl font-semibold">Prompt library</h1>
         <button
           onClick={() => setShowForm(!showForm)}
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg font-medium transition-colors"
         >
-          {showForm ? "취소" : "새 항목 추가"}
+          {showForm ? "Cancel" : "Add item"}
         </button>
       </div>
 
-      {/* 카테고리 탭 */}
+      {/* Category tabs */}
       <div className="flex flex-wrap gap-2">
         {CATEGORIES.map((cat) => (
           <button
@@ -144,28 +144,28 @@ export default function LibraryPage() {
         ))}
       </div>
 
-      {/* 추가 폼 */}
+      {/* Add form */}
       {showForm && (
         <div className="bg-gray-900 rounded-xl border border-gray-800 p-4 space-y-3">
           <h3 className="text-sm font-medium text-gray-400">
-            새 {CATEGORIES.find((c) => c.value === activeTab)?.label} 추가
+            New {CATEGORIES.find((c) => c.value === activeTab)?.label} example
           </h3>
           <textarea
             value={formContent}
             onChange={(e) => setFormContent(e.target.value)}
             rows={3}
-            placeholder="예시 문구를 입력하세요..."
+            placeholder="Enter example text…"
             className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 resize-none"
           />
           <div className="flex gap-3 items-center flex-wrap">
             <label className="flex items-center gap-2 text-sm text-gray-400">
-              <span>페르소나</span>
+              <span>Persona</span>
               <select
                 value={formPersona}
                 onChange={(e) => setFormPersona(e.target.value)}
                 className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500"
               >
-                <option value="">전체 공용</option>
+                <option value="">All personas</option>
                 {personaNames.map((p) => (
                   <option key={p} value={p}>{p}</option>
                 ))}
@@ -178,36 +178,36 @@ export default function LibraryPage() {
                 onChange={(e) => setFormActive(e.target.checked)}
                 className="rounded"
               />
-              <span>활성</span>
+              <span>Active</span>
             </label>
             <button
               onClick={handleCreate}
               disabled={saving || !formContent.trim()}
               className="ml-auto px-4 py-2 bg-green-700 hover:bg-green-600 disabled:opacity-50 text-white text-sm rounded-lg font-medium transition-colors"
             >
-              {saving ? "저장 중..." : "추가"}
+              {saving ? "Saving…" : "Add"}
             </button>
           </div>
         </div>
       )}
 
-      {/* 목록 */}
+      {/* List */}
       <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
         {loading ? (
-          <div className="text-center py-12 text-gray-500">로딩 중...</div>
+          <div className="text-center py-12 text-gray-500">Loading…</div>
         ) : items.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
-            등록된 {CATEGORIES.find((c) => c.value === activeTab)?.label} 예시가 없습니다.
+            No {CATEGORIES.find((c) => c.value === activeTab)?.label} examples yet.
           </div>
         ) : (
           <>
           <table className="w-full text-sm hidden sm:table">
             <thead className="bg-gray-800 text-gray-400">
               <tr>
-                <th className="text-left px-4 py-3">내용</th>
-                <th className="text-left px-4 py-3 w-28">페르소나</th>
-                <th className="text-center px-4 py-3 w-16">활성</th>
-                <th className="text-right px-4 py-3 w-28">관리</th>
+                <th className="text-left px-4 py-3">Content</th>
+                <th className="text-left px-4 py-3 w-28">Persona</th>
+                <th className="text-center px-4 py-3 w-16">Active</th>
+                <th className="text-right px-4 py-3 w-28">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800">
@@ -229,7 +229,7 @@ export default function LibraryPage() {
                           onChange={(e) => setEditPersona(e.target.value)}
                           className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-blue-500"
                         >
-                          <option value="">공용</option>
+                          <option value="">Shared</option>
                           {personaNames.map((p) => (
                             <option key={p} value={p}>{p}</option>
                           ))}
@@ -250,13 +250,13 @@ export default function LibraryPage() {
                             disabled={saving}
                             className="text-xs px-2 py-1 bg-green-900/50 hover:bg-green-900 text-green-400 rounded-md"
                           >
-                            저장
+                            Save
                           </button>
                           <button
                             onClick={() => setEditingId(null)}
                             className="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded-md"
                           >
-                            취소
+                            Cancel
                           </button>
                         </div>
                       </td>
@@ -264,7 +264,7 @@ export default function LibraryPage() {
                   ) : (
                     <>
                       <td className="px-4 py-3 text-gray-300 whitespace-pre-wrap">{item.content}</td>
-                      <td className="px-4 py-3 text-gray-500 text-xs">{item.persona || "공용"}</td>
+                      <td className="px-4 py-3 text-gray-500 text-xs">{item.persona || "Shared"}</td>
                       <td className="px-4 py-3 text-center">
                         <button
                           onClick={() => handleToggleActive(item)}
@@ -285,13 +285,13 @@ export default function LibraryPage() {
                             onClick={() => startEdit(item)}
                             className="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded-md"
                           >
-                            수정
+                            Edit
                           </button>
                           <button
                             onClick={() => handleDelete(item.id)}
                             className="text-xs px-2 py-1 bg-red-900/50 hover:bg-red-900 text-red-400 rounded-md"
                           >
-                            삭제
+                            Delete
                           </button>
                         </div>
                       </td>
@@ -302,7 +302,7 @@ export default function LibraryPage() {
             </tbody>
           </table>
 
-          {/* 모바일 카드 리스트 */}
+          {/* Mobile card list */}
           <div className="sm:hidden divide-y divide-gray-800">
             {items.map((item) => (
               <div key={item.id} className="p-4 space-y-2">
@@ -320,7 +320,7 @@ export default function LibraryPage() {
                         onChange={(e) => setEditPersona(e.target.value)}
                         className="bg-gray-800 border border-gray-700 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-blue-500"
                       >
-                        <option value="">공용</option>
+                        <option value="">Shared</option>
                         {personaNames.map((p) => (
                           <option key={p} value={p}>{p}</option>
                         ))}
@@ -332,7 +332,7 @@ export default function LibraryPage() {
                           onChange={(e) => setEditActive(e.target.checked)}
                           className="rounded"
                         />
-                        <span>활성</span>
+                        <span>Active</span>
                       </label>
                     </div>
                     <div className="flex gap-2">
@@ -341,13 +341,13 @@ export default function LibraryPage() {
                         disabled={saving}
                         className="text-xs px-3 py-1 bg-green-900/50 hover:bg-green-900 text-green-400 rounded-md"
                       >
-                        저장
+                        Save
                       </button>
                       <button
                         onClick={() => setEditingId(null)}
                         className="text-xs px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-md"
                       >
-                        취소
+                        Cancel
                       </button>
                     </div>
                   </>
@@ -355,7 +355,7 @@ export default function LibraryPage() {
                   <>
                     <p className="text-gray-300 whitespace-pre-wrap text-sm">{item.content}</p>
                     <div className="flex items-center gap-3 text-xs text-gray-500">
-                      <span>{item.persona || "공용"}</span>
+                      <span>{item.persona || "Shared"}</span>
                       <button
                         onClick={() => handleToggleActive(item)}
                         className={`w-8 h-4 rounded-full relative transition-colors ${
@@ -373,13 +373,13 @@ export default function LibraryPage() {
                           onClick={() => startEdit(item)}
                           className="text-xs px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-md"
                         >
-                          수정
+                          Edit
                         </button>
                         <button
                           onClick={() => handleDelete(item.id)}
                           className="text-xs px-3 py-1 bg-red-900/50 hover:bg-red-900 text-red-400 rounded-md"
                         >
-                          삭제
+                          Delete
                         </button>
                       </div>
                     </div>

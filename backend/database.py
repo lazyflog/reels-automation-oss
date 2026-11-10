@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 
 from config import settings
 
-# Async engine (FastAPI용)
+# Async engine (for FastAPI)
 async_engine = create_async_engine(settings.database_url, echo=False)
 AsyncSessionLocal = async_sessionmaker(
     bind=async_engine,
@@ -12,7 +12,7 @@ AsyncSessionLocal = async_sessionmaker(
     expire_on_commit=False,
 )
 
-# Sync engine (Celery worker용)
+# Sync engine (for Celery workers)
 sync_engine = create_engine(settings.sync_database_url, echo=False)
 SyncSessionLocal = sessionmaker(bind=sync_engine, autocommit=False, autoflush=False)
 

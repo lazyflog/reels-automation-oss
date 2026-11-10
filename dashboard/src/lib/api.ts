@@ -1,5 +1,5 @@
 const API_URL = "";
-// 브라우저의 현재 origin을 사용해 ngrok/커스텀 도메인 환경에서도 올바른 URL 생성
+// Use the browser's current origin so URLs are correct behind ngrok/custom domains too
 const DIRECT_URL = typeof window !== "undefined" ? window.location.origin : "";
 
 export interface Job {
@@ -297,7 +297,7 @@ export const api = {
       credentials: "include",
       body: JSON.stringify({ frame_time, ...opts }),
     }).then((res) => {
-      if (!res.ok) throw new Error("표지 미리보기 생성 실패");
+      if (!res.ok) throw new Error("Failed to generate cover preview");
       return res.blob();
     }),
 
@@ -320,7 +320,7 @@ export const api = {
       body: form,
       credentials: "include",
     }).then((res) => {
-      if (!res.ok) throw new Error(`BGM 업로드 실패: ${res.status}`);
+      if (!res.ok) throw new Error(`BGM upload failed: ${res.status}`);
       return res.json() as Promise<{ filename: string }>;
     });
   },

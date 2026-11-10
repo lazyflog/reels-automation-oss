@@ -68,7 +68,7 @@ async def create_persona(
 ):
     existing = await db.execute(select(Persona).where(Persona.name == req.name))
     if existing.scalar_one_or_none():
-        raise HTTPException(status_code=400, detail="이미 등록된 페르소나 이름입니다")
+        raise HTTPException(status_code=400, detail="Persona name is already registered")
 
     persona = Persona(
         name=req.name,

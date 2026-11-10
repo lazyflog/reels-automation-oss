@@ -2,7 +2,7 @@
 
 import { ReactNode, CSSProperties, useEffect, useState } from "react";
 
-/** 좁은 화면(모바일) 여부 — 모달 레이아웃을 세로 스크롤형으로 전환할 때 사용. */
+/** Whether the screen is narrow (mobile) — used to switch the modal layout to vertical scrolling. */
 export function useIsNarrow(breakpoint = 640): boolean {
   const [narrow, setNarrow] = useState(false);
   useEffect(() => {
@@ -15,23 +15,23 @@ export function useIsNarrow(breakpoint = 640): boolean {
   return narrow;
 }
 
-// 프로토타입(siteDesign.dc.html) 팔레트
+// Prototype (siteDesign.dc.html) palette
 export const SWATCHES = [
   "#ffffff", "#000000", "#f5b400", "#f97316", "#ef4444", "#22c55e",
   "#84cc16", "#06b6d4", "#3b82f6", "#6366f1", "#a855f7", "#ec4899",
 ];
 
-// 1080px 폭 영상을 컨테이너 폭에 매핑 → px를 cqw로 환산 (1cqw ≈ 10.8px)
+// Map 1080px-wide video to container width → convert px to cqw (1cqw ≈ 10.8px)
 const PX_TO_CQW = 10.8;
 
 export interface TextStyleOpts {
   text: string;
-  font: string;          // CSS font-family (프리뷰용 근사)
-  size: number;          // px (1080 기준)
+  font: string;          // CSS font-family (approximation for preview)
+  size: number;          // px (relative to 1080)
   color: string;
   bold: boolean;
   italic: boolean;
-  topPct: number;        // 세로 위치 0~100 (%)
+  topPct: number;        // vertical position 0–100 (%)
   strokeColor?: string | null;
   strokeWidth?: number;  // px
   shadow?: boolean;
@@ -40,7 +40,7 @@ export interface TextStyleOpts {
   bgColor?: string | null;
 }
 
-/** 9:16 라이브 프리뷰의 텍스트 CSS (container query 폭 기준). */
+/** Text CSS for the 9:16 live preview (based on container query width). */
 export function buildTextStyle(o: TextStyleOpts): CSSProperties {
   const stroke = o.strokeWidth && o.strokeWidth > 0 && o.strokeColor;
   let textShadow = "none";
@@ -76,7 +76,7 @@ export function buildTextStyle(o: TextStyleOpts): CSSProperties {
   };
 }
 
-/** 배경 프레임 + 가운데 가이드선 + 텍스트 오버레이를 그리는 9:16 스테이지. */
+/** 9:16 stage that draws the background frame, center guide line, and text overlay. */
 export function PreviewStage({
   bg,
   textStyle,
@@ -88,7 +88,7 @@ export function PreviewStage({
   bg: string | null;
   textStyle: CSSProperties;
   text: string;
-  /** 지정 시 첫 줄은 textStyle.color, 이후 줄은 이 색(윗줄/아랫줄 다른 색). */
+  /** If set, the first line uses textStyle.color and subsequent lines use this color (different top/bottom line colors). */
   secondColor?: string | null;
   className?: string;
   style?: CSSProperties;
@@ -133,7 +133,7 @@ export function PreviewStage({
   );
 }
 
-/** 풀스크린 편집 모달 셸 — 헤더 / 본문(프리뷰) / 하단 컨트롤 패널. */
+/** Fullscreen editor modal shell — header / body (preview) / bottom control panel. */
 export function EditorShell({
   title,
   subtitle,
@@ -178,7 +178,7 @@ export function EditorShell({
           boxShadow: "0 0 80px rgba(0,0,0,.6)",
         }}
       >
-        {/* 헤더 */}
+        {/* Header */}
         <div
           style={{
             height: 56,
@@ -223,7 +223,7 @@ export function EditorShell({
                 cursor: "pointer",
               }}
             >
-              취소
+              Cancel
             </button>
             <button
               onClick={onSave}
@@ -240,13 +240,13 @@ export function EditorShell({
                 opacity: saving ? 0.6 : 1,
               }}
             >
-              {saving ? "저장 중..." : saveLabel}
+              {saving ? "Saving…" : saveLabel}
             </button>
           </div>
         </div>
 
         {narrow ? (
-          /* 모바일: 헤더 아래 전체를 하나의 세로 스크롤 영역으로 */
+          /* Mobile: everything below the header is one vertical scroll area */
           <div style={{ flex: 1, overflow: "auto" }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: 14, gap: 14 }}>
               {preview}
@@ -254,7 +254,7 @@ export function EditorShell({
             <div style={{ borderTop: "1px solid #1c2740", background: "#0c1322" }}>{panel}</div>
           </div>
         ) : (
-          /* 데스크톱: 프리뷰(스크롤) + 하단 고정 패널 */
+          /* Desktop: preview (scrolling) + fixed bottom panel */
           <>
             <div
               style={{
@@ -278,7 +278,7 @@ export function EditorShell({
   );
 }
 
-// ── 공용 컨트롤 ─────────────────────────────────────────────
+// ── Shared controls ─────────────────────────────────────────────
 
 export function PreviewBox({ children }: { children: ReactNode }) {
   const narrow = useIsNarrow();

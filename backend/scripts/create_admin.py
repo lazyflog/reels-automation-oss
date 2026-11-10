@@ -1,6 +1,6 @@
-"""초기 관리자 계정 생성 스크립트
+"""Script to create the initial admin account
 
-사용법:
+Usage:
     docker-compose exec api python scripts/create_admin.py --username admin --password yourpassword
 """
 import argparse
@@ -18,7 +18,7 @@ from models.user import User
 
 
 def main():
-    parser = argparse.ArgumentParser(description="관리자 계정 생성")
+    parser = argparse.ArgumentParser(description="Create an admin account")
     parser.add_argument("--username", required=True)
     parser.add_argument("--password", required=True)
     args = parser.parse_args()
@@ -29,7 +29,7 @@ def main():
 
     existing = session.query(User).filter_by(username=args.username).first()
     if existing:
-        print(f"[오류] 이미 존재하는 계정: {args.username}")
+        print(f"[Error] Account already exists: {args.username}")
         session.close()
         sys.exit(1)
 
@@ -41,7 +41,7 @@ def main():
     session.add(user)
     session.commit()
     session.close()
-    print(f"[완료] 계정 생성: {args.username}")
+    print(f"[Done] Account created: {args.username}")
 
 
 if __name__ == "__main__":
