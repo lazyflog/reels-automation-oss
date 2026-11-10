@@ -67,6 +67,9 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
     return fam ? (coverBold ? fam.bold : fam.regular) : coverFont;
   })();
   const coverFamilyName = fontFamilies.find((f) => f.regular === coverFont || f.bold === coverFont)?.name ?? "";
+  // Display name of any registered font (also single-weight fonts that are not part of a family)
+  const fontLabel = (path: string | null | undefined, family: string) =>
+    family || fontList.find((f) => f.path === path)?.name || "Default font";
 
   const fetchJob = async () => {
     try {
@@ -459,7 +462,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                   <div className="min-w-0" style={{ flex: 1 }}>
                     <div style={{ fontSize: 12.5, color: "#9aa6c0", lineHeight: 1.7 }}>
                       {selectedFrame !== null ? <>Frame <b style={{ color: "#cdd6ea" }}>#{selectedFrame + 1}</b> · </> : null}
-                      {coverFamilyName || "Default font"}<br />Title {coverTitleColor} / Outline {coverStrokeWidth}
+                      {fontLabel(coverFont, coverFamilyName)}<br />Title {coverTitleColor} / Outline {coverStrokeWidth}
                     </div>
                     <button onClick={openCoverEditor} className="mt-3 w-full text-white font-bold rounded-lg" style={{ background: "#1d4ed8", fontSize: 14, padding: 11 }}>
                       Edit cover · Live preview
@@ -481,7 +484,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                 </div>
                 <div className="min-w-0" style={{ flex: 1 }}>
                   <div style={{ fontSize: 12.5, color: "#9aa6c0", lineHeight: 1.7 }}>
-                    {subFamilyName || "Default font"} · {job.subtitle_color || "white"}<br />
+                    {fontLabel(job.subtitle_font, subFamilyName)} · {job.subtitle_color || "white"}<br />
                     Outline {job.subtitle_stroke_width ?? 0} · Position {normalizeSubPosition(job.subtitle_position)}/10
                   </div>
                   <button onClick={() => setOpenEditor("sub")} className="mt-3 w-full font-bold rounded-lg" style={{ background: "#172238", border: "1px solid #2a3650", color: "#e9eef7", fontSize: 14, padding: 11 }}>
