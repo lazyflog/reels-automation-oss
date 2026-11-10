@@ -113,6 +113,7 @@ def extract(self, job_id: str, source_urls) -> dict:
         update_job(
             job_id,
             status="extracted",
+            error_message=None,  # clear errors from earlier failed attempts
             video_path=video_paths[0] if video_paths else None,
             video_paths=video_paths,
         )
