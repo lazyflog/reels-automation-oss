@@ -1,6 +1,11 @@
-# reels-automation
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.png">
+    <img src="docs/assets/logo.png" alt="Reels Automation — open-source AI video pipeline" width="600">
+  </picture>
+</h1>
 
-[English](README.md) · [한국어](README.ko.md) · **简体中文** · [日本語](README.ja.md)
+<p align="center"><a href="README.md">English</a> · <a href="README.ko.md">한국어</a> · <b>简体中文</b> · <a href="README.ja.md">日本語</a></p>
 
 一个可自行部署的流水线，将**你自己的产品素材**制作成竖版短视频（Instagram Reels），
 并自动生成 AI 撰写的配音脚本、文字转语音（TTS）旁白、带样式的字幕和封面帧。

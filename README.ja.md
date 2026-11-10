@@ -1,6 +1,11 @@
-# reels-automation
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.png">
+    <img src="docs/assets/logo.png" alt="Reels Automation — open-source AI video pipeline" width="600">
+  </picture>
+</h1>
 
-[English](README.md) · [한국어](README.ko.md) · [简体中文](README.zh-CN.md) · **日本語**
+<p align="center"><a href="README.md">English</a> · <a href="README.ko.md">한국어</a> · <a href="README.zh-CN.md">简体中文</a> · <b>日本語</b></p>
 
 **自分で撮影した製品映像**から、AI が書いたナレーション台本、音声合成（TTS）ナレーション、
 スタイル付き字幕、カバー画像を備えた縦型ショート動画（Instagram リール）を作成する、

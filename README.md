@@ -1,6 +1,11 @@
-# reels-automation
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.png">
+    <img src="docs/assets/logo.png" alt="Reels Automation — open-source AI video pipeline" width="600">
+  </picture>
+</h1>
 
-**English** · [한국어](README.ko.md) · [简体中文](README.zh-CN.md) · [日本語](README.ja.md)
+<p align="center"><b>English</b> · <a href="README.ko.md">한국어</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.ja.md">日本語</a></p>
 
 A self-hosted pipeline that turns **your own product footage** into short vertical videos
 (Instagram Reels) with an AI-written voice-over script, text-to-speech narration,
