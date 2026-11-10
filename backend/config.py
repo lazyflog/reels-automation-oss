@@ -53,6 +53,8 @@ class Settings(BaseSettings):
     # (docker compose --profile xhs). See docs/LEGAL.md before enabling.
     enable_xhs_import: bool = False
     xhs_downloader_url: str = "http://xhs-downloader:5556"
+    # Bearer token required by XHS-Downloader >= 2.9 (see .env.example for how to generate it)
+    xhs_downloader_token: str = ""
 
     # Max size of a single uploaded source video (MB)
     max_upload_mb: int = 500
