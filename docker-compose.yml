@@ -1,0 +1,90 @@
+services:
+  api:
+    build: ./backend
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./temp:/app/temp
+      - ./output:/app/output
+      - ./bgm:/app/bgm
+      - ./examples:/examples:ro
+    env_file: .env
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+
+  worker:
+    build: ./backend
+    command: celery -A workers.celery_app worker -l info --concurrency=4
+    volumes:
+      - ./temp:/app/temp
+      - ./output:/app/output
+      - ./bgm:/app/bgm
+    env_file: .env
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+
+  beat:
+    build: ./backend
+    command: celery -A workers.celery_app beat -l info
+    volumes:
+      - ./temp:/app/temp
+    env_file: .env
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+
+  dashboard:
+    build: ./dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      - BACKEND_URL=http://api:8000
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.2-alpine  # 7.2 is the last BSD-licensed Redis release line
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: reels
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # Optional, disabled by default. Third-party GPL-3.0 tool (github.com/JoeanAmier/XHS-Downloader)
+  # with its own usage terms; Xiaohongshu's terms prohibit scraping/downloading.
+  # Read docs/LEGAL.md, then enable with: docker compose --profile xhs up -d  (+ ENABLE_XHS_IMPORT=true)
+  xhs-downloader:
+    profiles: ["xhs"]
+    image: joeanamier/xhs-downloader:2.8
+    command: python main.py api
+    ports: [ "5556:5556" ]
+    volumes:
+      - ./temp:/app/Volume
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - api
+      - dashboard
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

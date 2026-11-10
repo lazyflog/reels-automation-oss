@@ -1,0 +1,58 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Secrets
+token.json
+client_secret.json
+
+# Temp & output
+temp/
+output/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+
+# Alembic
+backend/alembic/versions/*.pyc
+
+# Node
+dashboard/node_modules/
+dashboard/.next/
+dashboard/out/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+celerybeat-schedule
+celerybeat.pid
+
+# Optional plugins installed by the user (not redistributed)
+backend/plugins/vmake/sdk/
+
+# User-supplied assets (check their licenses before committing — see docs/FONTS.md)
+backend/fonts/*
+!backend/fonts/.gitkeep
+bgm/*
+!bgm/.gitkeep
