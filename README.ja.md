@@ -21,6 +21,34 @@ Upload footage ─▶ Gemini video analysis ─▶ GPT script ─▶ ElevenLabs 
 > アクセスする連携機能は**デフォルトで無効**です。いずれかを有効にする前に
 > [docs/LEGAL.ja.md](docs/LEGAL.ja.md) をお読みください。
 
+## デモ
+
+10 秒のハンディファンの動画を入れると、リールが出来上がります。ペルソナなし・デフォルト設定で、字幕と
+表紙のスタイルだけ調整しています。
+
+<p align="center">
+  <img src="docs/assets/demo-compare.webp" alt="左：元の動画 · 右：生成されたリール" width="540">
+</p>
+<p align="center"><sub>左：元の素材（メンテナー自身が撮影） · 右：生成されたリール — 表紙、AI 台本、ElevenLabs ナレーション、字幕。</sub></p>
+
+**▶ 音声付きで見る**（左：元の素材、右：生成されたリール）：
+
+https://github.com/user-attachments/assets/e562431c-fef9-4cae-9344-e789f60f9b30
+
+Gemini が動画を分析し、GPT が書いた台本です（出力言語：英語）。
+
+> **Hook:** Hot commute? Fix it fast.
+> **Points:** LED shows speed and battery. · Hold, fold for desk, or wear it. · Strong breeze, quiet, lasts longer.
+> **CTA:** Comment FAN for the link.
+
+<details>
+<summary>ダッシュボードのスクリーンショット</summary>
+
+![新規ジョブ](docs/assets/dashboard.webp)
+![ジョブのレビュー](docs/assets/job-review.webp)
+
+</details>
+
 ## 機能
 
 - **1 ジョブで複数ソースに対応** — 同じ製品のクリップを最大 10 本まで組み合わせて 1 本の動画にできます。
