@@ -28,7 +28,11 @@ def extract_xhs_video(url: str, output_path: str) -> str | None:
             "(see .env.example for how to generate it)"
         )
     resp.raise_for_status()
-    data = resp.json().get("data", {})
+    data = resp.json().get("data") or {}
+    if not data:
+        # The sidecar occasionally returns `"data": null` (e.g. right after a post is published);
+        # raise a non-ValueError so the Celery task retries instead of failing permanently.
+        raise RuntimeError("xhs-downloader returned no data for this URL")
 
     # Assemble metadata
     title = data.get("作品标题", "")
