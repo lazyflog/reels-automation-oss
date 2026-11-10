@@ -1,6 +1,11 @@
-# reels-automation
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.png">
+    <img src="docs/assets/logo.png" alt="Reels Automation — open-source AI video pipeline" width="600">
+  </picture>
+</h1>
 
-[English](README.md) · **한국어** · [简体中文](README.zh-CN.md) · [日本語](README.ja.md)
+<p align="center"><a href="README.md">English</a> · <b>한국어</b> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.ja.md">日本語</a></p>
 
 **직접 촬영한 제품 영상**으로 세로형 숏폼 영상(Instagram 릴스)을 만드는 셀프 호스팅
 파이프라인입니다. AI가 내레이션 대본을 쓰고, TTS로 내레이션을 만들고, 스타일을 입힌 자막과
