@@ -31,8 +31,8 @@ Upload footage ─▶ Gemini video analysis ─▶ GPT script ─▶ ElevenLabs 
 
 由 Gemini 分析视频、GPT 撰写的脚本（输出语言：英语）：
 
-> **Hook:** Sweating on your commute?
-> **Points:** Pocket-size but blows strong. · Digital screen shows speed and battery. · Base makes it a desk fan, too.
+> **Hook:** Hot commute? Fix it fast.
+> **Points:** LED shows speed and battery. · Hold, fold for desk, or wear it. · Strong breeze, quiet, lasts longer.
 > **CTA:** Comment FAN for the link.
 
 <details>
