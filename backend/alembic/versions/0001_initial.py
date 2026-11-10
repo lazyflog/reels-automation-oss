@@ -26,7 +26,7 @@ def upgrade() -> None:
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('source_url', sa.String(), nullable=False),
     sa.Column('platform', sa.Enum('upload', 'url', 'tiktok', 'instagram', 'xhs', name='platform_enum'), nullable=True),
-    sa.Column('status', sa.Enum('pending', 'extracting', 'extracted', 'analyzing', 'analyzed', 'removing_watermarks', 'watermarks_removed', 'awaiting_cover', 'generating', 'generated', 'tts_processing', 'tts_done', 'awaiting_tts_review', 'editing', 'review_pending', 'approved', 'rejected', 'uploading', 'published', 'failed', name='status_enum'), nullable=True),
+    sa.Column('status', sa.Enum('pending', 'extracting', 'extracted', 'analyzing', 'analyzed', 'awaiting_cover', 'generating', 'generated', 'tts_processing', 'tts_done', 'awaiting_tts_review', 'editing', 'review_pending', 'approved', 'rejected', 'uploading', 'published', 'failed', name='status_enum'), nullable=True),
     sa.Column('source_urls', sa.JSON(), nullable=True),
     sa.Column('video_path', sa.String(), nullable=True),
     sa.Column('video_paths', sa.JSON(), nullable=True),

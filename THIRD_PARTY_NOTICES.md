@@ -29,7 +29,6 @@ No music files are distributed with this repository.
 | asyncpg, openai, requests, python-multipart, bcrypt, google-generativeai | Apache-2.0 |
 | psycopg2-binary | LGPL-3.0-or-later with exceptions (bundles libpq — PostgreSQL License — and OpenSSL — Apache-2.0) |
 | yt-dlp | The Unlicense |
-| *Optional vmake plugin:* alibabacloud-oss-v2 | Apache-2.0 |
 
 Transitive dependencies include imageio and imageio-ffmpeg (BSD-2-Clause), proglog (MIT),
 decorator (BSD-2-Clause), numpy (BSD-3-Clause) and kombu (BSD-3-Clause).
@@ -56,7 +55,5 @@ caniuse-lite (CC-BY-4.0, browser-support data).
 
 ## Optional third-party services
 
-- **vmake.ai** (Meitu) — paid API used only by the optional `backend/plugins/vmake` plugin. No
-  vmake SDK is included; users install it themselves and accept vmake's terms.
 - **OpenAI, Google Gemini, ElevenLabs, NAVER CLOVA Voice, Meta (Instagram)** — used under each
   provider's terms. See [docs/LEGAL.md](docs/LEGAL.md).

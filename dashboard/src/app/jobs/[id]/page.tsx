@@ -266,7 +266,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
   const downloadReady = ["review_pending", "approved", "uploading", "published", "awaiting_tts_review"].includes(job.status);
   const isTtsReview = job.status === "awaiting_tts_review";
   const isFinalReview = job.status === "review_pending";
-  const canEditCover = ["watermarks_removed", "analyzed", "extracted", "awaiting_cover", "generating", "generated", "tts_processing", "tts_done", "awaiting_tts_review", "review_pending"].includes(job.status);
+  const canEditCover = ["analyzed", "extracted", "awaiting_cover", "generating", "generated", "tts_processing", "tts_done", "awaiting_tts_review", "review_pending"].includes(job.status);
 
   // Cover card live thumbnail
   const coverBg = selectedFrame !== null ? frames[selectedFrame] : frames[0] ?? null;
@@ -376,7 +376,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                 <video src={videoUrl} controls className="rounded-xl w-full" style={{ aspectRatio: "9/16", background: "#000", border: "1px solid #1d2942" }} />
               ) : (
                 <div className="flex items-center justify-center rounded-xl text-sm w-full" style={{ aspectRatio: "9/16", background: "#0b1220", color: "#5d6b88", border: "1px solid #1d2942" }}>
-                  {["editing", "analyzing", "removing_watermarks"].includes(job.status) ? "Processing…" : "No video"}
+                  {["editing", "analyzing"].includes(job.status) ? "Processing…" : "No video"}
                 </div>
               )}
             </div>
@@ -421,7 +421,6 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
                   { key: "pending", label: "Pending" },
                   { key: "extracted", label: "Collected" },
                   { key: "analyzed", label: "AI analysis done" },
-                  { key: "watermarks_removed", label: "Watermarks removed" },
                   { key: "generated", label: "Script generated" },
                   { key: "tts_done", label: "TTS done" },
                   { key: "awaiting_tts_review", label: "Awaiting subtitle/voice review" },

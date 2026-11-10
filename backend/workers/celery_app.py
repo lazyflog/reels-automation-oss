@@ -10,7 +10,6 @@ celery = Celery(
     include=[
         "workers.extract",
         "workers.analyze",
-        "workers.remove_watermark",
         "workers.generate",
         "workers.tts",
         "workers.edit",

@@ -124,7 +124,6 @@ export interface Persona {
 }
 
 export interface Features {
-  watermark_removal: boolean;
   bgm_url_download: boolean;
   url_import: boolean;
   xhs_import: boolean;

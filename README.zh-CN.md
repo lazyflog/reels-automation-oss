@@ -102,10 +102,15 @@ Content Publishing API 有调用频率限制（每个账号每 24 小时约 100 
 
 | 变量 | 作用 | 默认关闭的原因 |
 |---|---|---|
-| `ENABLE_WATERMARK_REMOVAL` | 通过 vmake.ai 插件去除水印 / 硬字幕。**不**包含 SDK —— 参见 [backend/plugins/vmake](backend/plugins/vmake/README.md)。 | 去除创作者的水印（权利管理信息）可能构成民事侵权或刑事犯罪。仅可用于你自己拥有的素材。 |
 | `ENABLE_XHS_IMPORT` | 通过第三方 [XHS-Downloader](https://github.com/JoeanAmier/XHS-Downloader) 边车容器（`docker compose --profile xhs up -d`）导入小红书（Xiaohongshu）链接。 | 小红书的条款禁止抓取和下载；XHS-Downloader（GPL-3.0）也有其自身的使用限制。 |
 | `ENABLE_BGM_URL_DOWNLOAD` | 使用 yt-dlp 从 URL 下载背景音乐。 | YouTube、SoundCloud 及大多数平台禁止下载音频。 |
 | `ENABLE_CLOVA_VOICE` | 使用 NAVER CLOVA Voice 作为 TTS 提供商 / 备用方案。 | CLOVA Voice 的使用政策不允许保存和编辑生成的音频。 |
+
+## 扩展流水线
+
+需要在生成脚本之前先处理源视频——例如清理或增强你自己的素材？在 `analyze` 和 `generate`
+之间添加一个 Celery 任务即可。具体做法见 [docs/EXTENDING.zh-CN.md](docs/EXTENDING.zh-CN.md)，
+其中附有使用 vmake.ai CLI（视频水印 / 字幕去除、视频画质增强等）的示例。
 
 ## 字体和音乐
 
@@ -117,9 +122,8 @@ Content Publishing API 有调用频率限制（每个账号每 24 小时约 100 
 
 ```
 backend/            FastAPI 应用、Celery worker、SQLAlchemy 模型、Alembic 迁移
-  workers/          extract → analyze → remove_watermark → generate → tts → edit → upload
+  workers/          extract → analyze → generate → tts → edit → upload
   prompts.py        所有 LLM 提示词（英文编写，输出语言可配置）
-  plugins/vmake/    可选的水印去除插件（不含 SDK）
 dashboard/          Next.js 14 控制台（App Router、Tailwind）
 examples/           可选的种子数据（人设、声音），提供英文和韩文版本
 nginx/              反向代理配置

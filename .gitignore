@@ -48,9 +48,6 @@ Thumbs.db
 celerybeat-schedule
 celerybeat.pid
 
-# Optional plugins installed by the user (not redistributed)
-backend/plugins/vmake/sdk/
-
 # User-supplied assets (check their licenses before committing — see docs/ASSETS.md)
 backend/fonts/*
 !backend/fonts/.gitkeep

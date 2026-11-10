@@ -1,2 +1,0 @@
-alibabacloud-oss-v2>=0.1.0
-requests

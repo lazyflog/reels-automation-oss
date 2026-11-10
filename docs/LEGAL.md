@@ -18,7 +18,7 @@ the terms of every platform and API you use. Features that touch third-party pla
 | Local video upload | on | Recommended source |
 | URL import via yt-dlp (`ENABLE_URL_IMPORT`) | on | Only for videos you own or are licensed to use |
 | Xiaohongshu import (`ENABLE_XHS_IMPORT`) | **off** | Platform terms prohibit it |
-| Watermark removal (`ENABLE_WATERMARK_REMOVAL`) | **off** | High legal risk on third-party content; plugin not bundled |
+| Watermark / subtitle removal | **not included** | High legal risk on third-party content — see below |
 | BGM download from URL (`ENABLE_BGM_URL_DOWNLOAD`) | **off** | Platform terms prohibit it |
 | NAVER CLOVA Voice (`ENABLE_CLOVA_VOICE`) | **off** | Usage policy conflicts with this pipeline |
 | OpenAI, Gemini, ElevenLabs, Instagram upload | on / optional | Subject to each provider's terms (below) |
@@ -40,10 +40,10 @@ vmake.ai's own guidance is to remove watermarks only from videos you own or have
 edit. Re-editing and re-publishing someone else's video is itself reproduction and adaptation
 of their work, with or without a watermark.
 
-For these reasons the vmake integration is an **optional plugin that is not bundled**: no vmake
-SDK is distributed with this repository, and the step only runs when
-`ENABLE_WATERMARK_REMOVAL=true`, valid vmake credentials are set and the plugin is installed.
-Use it only to clean up footage you own (for example, your own exported clips).
+For these reasons this project **does not include a watermark-removal step**.
+[EXTENDING.md](EXTENDING.md) explains where you can add your own processing step (for example
+with the vmake.ai CLI) — if you do, use it only on footage you own or are licensed to edit, such
+as your own exported clips.
 
 ## Importing videos
 

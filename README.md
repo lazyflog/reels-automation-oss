@@ -107,10 +107,16 @@ first.**
 
 | Variable | What it does | Why it is off |
 |---|---|---|
-| `ENABLE_WATERMARK_REMOVAL` | Removes watermarks / burned-in subtitles via the vmake.ai plugin. The SDK is **not** included — see [backend/plugins/vmake](backend/plugins/vmake/README.md). | Removing a creator's watermark (rights-management information) can be a civil or criminal offence. Only use it on footage you own. |
 | `ENABLE_XHS_IMPORT` | Imports Xiaohongshu links via the third-party [XHS-Downloader](https://github.com/JoeanAmier/XHS-Downloader) sidecar (`docker compose --profile xhs up -d`). | Xiaohongshu's terms prohibit scraping and downloading; XHS-Downloader (GPL-3.0) has its own usage restrictions. |
 | `ENABLE_BGM_URL_DOWNLOAD` | Downloads background music from a URL with yt-dlp. | YouTube, SoundCloud and most platforms prohibit downloading audio. |
 | `ENABLE_CLOVA_VOICE` | Uses NAVER CLOVA Voice as TTS provider / fallback. | CLOVA Voice's usage policy does not allow saving and editing generated audio. |
+
+## Extending the pipeline
+
+Need to process the source videos before the script is written — for example to clean up or
+enhance your own footage? Add a Celery task between `analyze` and `generate`.
+[docs/EXTENDING.md](docs/EXTENDING.md) shows how, with an example using the vmake.ai CLI
+(video watermark / subtitle removal, video enhancement and more).
 
 ## Fonts and music
 
@@ -124,9 +130,8 @@ sources.
 
 ```
 backend/            FastAPI app, Celery workers, SQLAlchemy models, Alembic migrations
-  workers/          extract → analyze → remove_watermark → generate → tts → edit → upload
+  workers/          extract → analyze → generate → tts → edit → upload
   prompts.py        all LLM prompts (English, output language is configurable)
-  plugins/vmake/    optional watermark-removal plugin (SDK not included)
 dashboard/          Next.js 14 dashboard (App Router, Tailwind)
 examples/           optional seed data (personas, voices) in English and Korean
 nginx/              reverse proxy config

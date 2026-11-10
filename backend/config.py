@@ -43,14 +43,6 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     gemini_model: str = "gemini-3-flash-preview"
 
-    # Watermark / burned-in subtitle removal (vmake.ai plugin) — OFF by default.
-    # See docs/LEGAL.md before enabling. Requires the vmake SDK to be installed
-    # separately into backend/plugins/vmake/ (see backend/plugins/vmake/README.md).
-    enable_watermark_removal: bool = False
-    vmake_ak: str = ""
-    vmake_sk: str = ""
-    vmake_sdk_dir: str = "./plugins/vmake"
-
     # Download BGM from a URL with yt-dlp — OFF by default (see docs/LEGAL.md).
     enable_bgm_url_download: bool = False
 

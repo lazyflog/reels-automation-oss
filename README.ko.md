@@ -107,10 +107,16 @@ Meta는 실제와 구분하기 어려운 AI 생성 오디오(AI 내레이션 등
 
 | 변수 | 기능 | 꺼 둔 이유 |
 |---|---|---|
-| `ENABLE_WATERMARK_REMOVAL` | vmake.ai 플러그인으로 워터마크 / 하드코딩된 자막을 지웁니다. SDK는 **포함되어 있지 않습니다** — [backend/plugins/vmake](backend/plugins/vmake/README.md) 참고. | 크리에이터의 워터마크(권리관리정보)를 지우면 민사·형사 책임을 질 수 있습니다. 본인 소유 영상에만 사용하세요. |
 | `ENABLE_XHS_IMPORT` | 서드파티 [XHS-Downloader](https://github.com/JoeanAmier/XHS-Downloader) 사이드카(`docker compose --profile xhs up -d`)로 샤오훙슈 링크를 가져옵니다. | 샤오훙슈 약관은 스크래핑과 다운로드를 금지합니다. XHS-Downloader(GPL-3.0)에도 별도의 사용 제한이 있습니다. |
 | `ENABLE_BGM_URL_DOWNLOAD` | yt-dlp로 URL에서 배경 음악을 내려받습니다. | YouTube, SoundCloud를 비롯한 대부분의 플랫폼이 오디오 다운로드를 금지합니다. |
 | `ENABLE_CLOVA_VOICE` | NAVER CLOVA Voice를 TTS 제공업체 / 대체 수단으로 사용합니다. | CLOVA Voice 이용 정책은 생성된 오디오의 저장과 편집을 허용하지 않습니다. |
+
+## 파이프라인 확장하기
+
+스크립트를 쓰기 전에 원본 영상을 먼저 처리하고 싶다면(예: 본인 영상을 정리하거나 화질을 높이는
+작업) `analyze`와 `generate` 사이에 Celery 태스크를 추가하면 됩니다. 방법은
+[docs/EXTENDING.ko.md](docs/EXTENDING.ko.md)에 정리해 두었고, vmake.ai CLI(영상 워터마크 / 자막
+제거, 화질 개선 등)를 사용하는 예시도 함께 실었습니다.
 
 ## 글꼴과 음악
 
@@ -123,9 +129,8 @@ Meta는 실제와 구분하기 어려운 AI 생성 오디오(AI 내레이션 등
 
 ```
 backend/            FastAPI 앱, Celery 워커, SQLAlchemy 모델, Alembic 마이그레이션
-  workers/          extract → analyze → remove_watermark → generate → tts → edit → upload
+  workers/          extract → analyze → generate → tts → edit → upload
   prompts.py        모든 LLM 프롬프트(영어로 작성, 출력 언어는 설정 가능)
-  plugins/vmake/    선택형 워터마크 제거 플러그인(SDK 미포함)
 dashboard/          Next.js 14 대시보드(App Router, Tailwind)
 examples/           선택형 시드 데이터(페르소나, 음성), 영어·한국어
 nginx/              리버스 프록시 설정

@@ -23,12 +23,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Optional vmake.ai plugin (watermark removal). Only installed when the user has
-# placed the vmake SDK into plugins/vmake/sdk/ — see plugins/vmake/README.md.
-RUN if [ -f plugins/vmake/sdk/__init__.py ]; then \
-        pip install --no-cache-dir -r plugins/vmake/requirements.txt; \
-    fi
-
 ENV PYTHONPATH=/app
 
 EXPOSE 8000

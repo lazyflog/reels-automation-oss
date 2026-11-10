@@ -16,7 +16,7 @@ reels-automation 是一款工作流工具，用于以**你拥有或已获授权�
 | 本地视频上传 | 开启 | 推荐的素材来源 |
 | 通过 yt-dlp 进行 URL 导入（`ENABLE_URL_IMPORT`） | 开启 | 仅限你拥有或已获授权使用的视频 |
 | 小红书导入（`ENABLE_XHS_IMPORT`） | **关闭** | 平台条款禁止 |
-| 水印去除（`ENABLE_WATERMARK_REMOVAL`） | **关闭** | 用于第三方内容时法律风险高；插件未随附 |
+| 水印 / 字幕去除 | **未包含** | 用于第三方内容时法律风险高——见下文 |
 | 从 URL 下载 BGM（`ENABLE_BGM_URL_DOWNLOAD`） | **关闭** | 平台条款禁止 |
 | NAVER CLOVA Voice（`ENABLE_CLOVA_VOICE`） | **关闭** | 使用政策与本流水线冲突 |
 | OpenAI、Gemini、ElevenLabs、Instagram 上传 | 开启 / 可选 | 受各提供商条款约束（见下文） |
@@ -37,9 +37,9 @@ reels-automation 是一款工作流工具，用于以**你拥有或已获授权�
 vmake.ai 自身的指引是：只对你拥有或已获编辑许可的视频去除水印。无论是否带有水印，
 重新剪辑并重新发布他人的视频，本身就构成对其作品的复制和改编。
 
-基于上述原因，vmake 集成是一个**未随附的可选插件**：本仓库不分发任何 vmake SDK，
-且该步骤仅在设置了 `ENABLE_WATERMARK_REMOVAL=true`、配置了有效的 vmake 凭据并安装了插件时才会运行。
-请仅将其用于清理你自己拥有的素材（例如你自己导出的片段）。
+基于上述原因，本项目**不包含水印去除步骤**。
+[EXTENDING.zh-CN.md](EXTENDING.zh-CN.md) 说明了可以在哪里添加你自己的处理步骤（例如使用 vmake.ai CLI）——
+如果你这样做，请仅将其用于你拥有或已获编辑许可的素材，例如你自己导出的片段。
 
 ## 导入视频
 

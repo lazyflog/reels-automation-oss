@@ -19,7 +19,6 @@ from api.auth import verify_session
 from utils.font_registry import list_fonts, list_font_families, resolve_font
 from workers.extract import extract
 from workers.analyze import analyze
-from workers.remove_watermark import remove_watermark
 from workers.generate import generate
 from workers.tts import tts, synthesize_tts, _apply_volume_to_audio
 from workers.edit import preview_edit, final_edit
@@ -195,8 +194,12 @@ async def upload_source_video(file: UploadFile = File(...), _: str = Depends(ver
 
 
 def _start_pipeline(job_id: str, source_urls: list[str] | None, video_paths: list[str] | None):
-    """Kick off the Celery pipeline — from extract (URLs) or from analyze (uploaded files)."""
-    steps = [analyze.s(), remove_watermark.s(), generate.s(), tts.s(), preview_edit.s()]
+    """Kick off the Celery pipeline — from extract (URLs) or from analyze (uploaded files).
+
+    To add your own processing of the source videos (e.g. clean-up, enhancement), insert a
+    Celery task between analyze and generate — see docs/EXTENDING.md.
+    """
+    steps = [analyze.s(), generate.s(), tts.s(), preview_edit.s()]
     if video_paths:
         first = analyze.s({"job_id": job_id, "video_paths": video_paths, "video_path": video_paths[0]})
         chain(first, *steps[1:]).apply_async()

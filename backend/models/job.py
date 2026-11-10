@@ -34,8 +34,6 @@ class Job(Base):
             "extracted",
             "analyzing",
             "analyzed",
-            "removing_watermarks",
-            "watermarks_removed",
             "awaiting_cover",
             "generating",
             "generated",

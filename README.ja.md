@@ -107,10 +107,16 @@ Meta は、リアルな AI 生成音声（AI ナレーションなど）に AI �
 
 | 変数 | 機能 | 無効にしている理由 |
 |---|---|---|
-| `ENABLE_WATERMARK_REMOVAL` | vmake.ai プラグインでウォーターマーク／焼き付け字幕を除去します。SDK は**同梱されていません**。[backend/plugins/vmake](backend/plugins/vmake/README.md) を参照してください。 | クリエイターのウォーターマーク（権利管理情報）の除去は、民事上・刑事上の責任を問われる可能性があります。自身が所有する映像にのみ使用してください。 |
 | `ENABLE_XHS_IMPORT` | サードパーティ製の [XHS-Downloader](https://github.com/JoeanAmier/XHS-Downloader) サイドカー（`docker compose --profile xhs up -d`）を介して小紅書（Xiaohongshu）のリンクを取り込みます。 | 小紅書の規約はスクレイピングとダウンロードを禁止しています。XHS-Downloader（GPL-3.0）にも独自の利用制限があります。 |
 | `ENABLE_BGM_URL_DOWNLOAD` | yt-dlp で URL から BGM をダウンロードします。 | YouTube、SoundCloud をはじめ、ほとんどのプラットフォームは音声のダウンロードを禁止しています。 |
 | `ENABLE_CLOVA_VOICE` | NAVER CLOVA Voice を TTS プロバイダー／フォールバックとして使用します。 | CLOVA Voice の利用ポリシーは、生成音声の保存・編集を認めていません。 |
+
+## パイプラインの拡張
+
+台本を作成する前にソース動画を処理したい場合（例えば、自身の映像の整理や高画質化）は、
+`analyze` と `generate` の間に Celery タスクを追加してください。手順は
+[docs/EXTENDING.ja.md](docs/EXTENDING.ja.md) で説明しています。vmake.ai CLI（動画のウォーターマーク／
+字幕除去、高画質化など）を使った例も載せています。
 
 ## フォントと音楽
 
@@ -124,9 +130,8 @@ Noto CJK のフォントファミリー（SIL OFL 1.1）がインストールさ
 
 ```
 backend/            FastAPI アプリ、Celery ワーカー、SQLAlchemy モデル、Alembic マイグレーション
-  workers/          extract → analyze → remove_watermark → generate → tts → edit → upload
+  workers/          extract → analyze → generate → tts → edit → upload
   prompts.py        すべての LLM プロンプト（英語。出力言語は設定可能）
-  plugins/vmake/    ウォーターマーク除去プラグイン（任意、SDK は同梱なし）
 dashboard/          Next.js 14 ダッシュボード（App Router、Tailwind）
 examples/           シードデータ（ペルソナ、音声）のサンプル（任意、英語・韓国語）
 nginx/              リバースプロキシ設定

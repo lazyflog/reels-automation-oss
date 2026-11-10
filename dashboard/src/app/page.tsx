@@ -53,7 +53,7 @@ const STATUS_FILTERS = [
 
 const STEPS = [
   { label: "Downloading", statuses: ["pending", "extracting", "extracted"] },
-  { label: "Analyzing", statuses: ["analyzing", "analyzed", "removing_watermarks", "watermarks_removed"] },
+  { label: "Analyzing", statuses: ["analyzing", "analyzed"] },
   { label: "Script & voice", statuses: ["generating", "generated", "tts_pending", "tts_processing", "tts_done"] },
   { label: "Editing", statuses: ["editing", "awaiting_tts_review"] },
   { label: "Done!", statuses: ["review_pending", "approved", "uploading", "published"] },

@@ -26,11 +26,6 @@ async def lifespan(app: FastAPI):
 def _warn_optional_features() -> None:
     """Log a prominent warning for opt-in features with legal/ToS implications."""
     log = logging.getLogger("reels")
-    if settings.enable_watermark_removal:
-        log.warning(
-            "ENABLE_WATERMARK_REMOVAL=true — only process footage you own or are licensed to edit. "
-            "Removing other creators' watermarks can be illegal (see docs/LEGAL.md)."
-        )
     if settings.enable_xhs_import:
         log.warning("ENABLE_XHS_IMPORT=true — Xiaohongshu's terms prohibit scraping/downloading (docs/LEGAL.md).")
     if settings.enable_bgm_url_download:
@@ -76,10 +71,7 @@ app.include_router(report_router)
 @app.get("/api/features")
 async def features():
     """Feature flags the dashboard uses to show/hide optional functionality."""
-    from workers.remove_watermark import watermark_removal_available
-
     return {
-        "watermark_removal": watermark_removal_available(),
         "bgm_url_download": settings.enable_bgm_url_download,
         "url_import": settings.enable_url_import,
         "xhs_import": settings.enable_xhs_import,
