@@ -27,7 +27,11 @@ Upload footage ─▶ Gemini video analysis ─▶ GPT script ─▶ ElevenLabs 
 <p align="center">
   <img src="docs/assets/demo-compare.webp" alt="左：原始视频 · 右：生成的 Reel" width="540">
 </p>
-<p align="center"><sub>左：原始素材（维护者自己拍摄） · 右：生成的 Reel —— 封面、AI 脚本、ElevenLabs 配音、字幕。<br>▶ <b>带声音观看：</b> <i>（视频链接即将添加）</i></sub></p>
+<p align="center"><sub>左：原始素材（维护者自己拍摄） · 右：生成的 Reel —— 封面、AI 脚本、ElevenLabs 配音、字幕。</sub></p>
+
+**▶ 带声音观看**（左：原始素材，右：生成的 Reel）：
+
+https://github.com/user-attachments/assets/e562431c-fef9-4cae-9344-e789f60f9b30
 
 由 Gemini 分析视频、GPT 撰写的脚本（输出语言：英语）：
 

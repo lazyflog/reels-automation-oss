@@ -29,7 +29,11 @@ Upload footage ─▶ Gemini video analysis ─▶ GPT script ─▶ ElevenLabs 
 <p align="center">
   <img src="docs/assets/demo-compare.webp" alt="왼쪽: 원본 영상 · 오른쪽: 생성된 릴스" width="540">
 </p>
-<p align="center"><sub>왼쪽: 원본 영상(메인테이너가 직접 촬영) · 오른쪽: 생성된 릴스 — 표지, AI 대본, ElevenLabs 내레이션, 자막.<br>▶ <b>소리와 함께 보기:</b> <i>(영상 링크 추가 예정)</i></sub></p>
+<p align="center"><sub>왼쪽: 원본 영상(메인테이너가 직접 촬영) · 오른쪽: 생성된 릴스 — 표지, AI 대본, ElevenLabs 내레이션, 자막.</sub></p>
+
+**▶ 소리와 함께 보기** (왼쪽 원본, 오른쪽 생성된 릴스):
+
+https://github.com/user-attachments/assets/e562431c-fef9-4cae-9344-e789f60f9b30
 
 Gemini가 영상을 분석하고 GPT가 쓴 대본입니다(출력 언어: 영어).
 

@@ -29,7 +29,11 @@ Upload footage ─▶ Gemini video analysis ─▶ GPT script ─▶ ElevenLabs 
 <p align="center">
   <img src="docs/assets/demo-compare.webp" alt="左：元の動画 · 右：生成されたリール" width="540">
 </p>
-<p align="center"><sub>左：元の素材（メンテナー自身が撮影） · 右：生成されたリール — 表紙、AI 台本、ElevenLabs ナレーション、字幕。<br>▶ <b>音声付きで見る：</b> <i>（動画リンクは近日追加）</i></sub></p>
+<p align="center"><sub>左：元の素材（メンテナー自身が撮影） · 右：生成されたリール — 表紙、AI 台本、ElevenLabs ナレーション、字幕。</sub></p>
+
+**▶ 音声付きで見る**（左：元の素材、右：生成されたリール）：
+
+https://github.com/user-attachments/assets/e562431c-fef9-4cae-9344-e789f60f9b30
 
 Gemini が動画を分析し、GPT が書いた台本です（出力言語：英語）。
 

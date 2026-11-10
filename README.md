@@ -30,7 +30,11 @@ cover style adjusted.
 <p align="center">
   <img src="docs/assets/demo-compare.webp" alt="Left: original clip · Right: generated Reel" width="540">
 </p>
-<p align="center"><sub>Left: original footage (the maintainer's own clip) · Right: generated Reel — cover, AI script, ElevenLabs voice-over, subtitles.<br>▶ <b>Watch with sound:</b> <i>(video link coming soon)</i></sub></p>
+<p align="center"><sub>Left: original footage (the maintainer's own clip) · Right: generated Reel — cover, AI script, ElevenLabs voice-over, subtitles.</sub></p>
+
+**▶ With sound** (original on the left, generated Reel on the right):
+
+https://github.com/user-attachments/assets/e562431c-fef9-4cae-9344-e789f60f9b30
 
 Script written by GPT from Gemini's analysis of the video:
 
