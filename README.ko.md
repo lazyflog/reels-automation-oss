@@ -21,6 +21,30 @@ Upload footage ─▶ Gemini video analysis ─▶ GPT script ─▶ ElevenLabs 
 > 연동 기능은 **기본적으로 꺼져 있습니다**. 이 기능을 켜기 전에 [docs/LEGAL.ko.md](docs/LEGAL.ko.md)를
 > 먼저 읽어 주세요.
 
+## 데모
+
+10초짜리 휴대용 선풍기 영상을 넣으면 릴스가 나옵니다. 페르소나 없이 기본 설정으로 돌렸고, 자막과
+표지 스타일만 조정했습니다.
+
+<p align="center">
+  <img src="docs/assets/demo-compare.webp" alt="왼쪽: 원본 영상 · 오른쪽: 생성된 릴스" width="540">
+</p>
+<p align="center"><sub>왼쪽: 원본 영상(메인테이너가 직접 촬영) · 오른쪽: 생성된 릴스 — 표지, AI 대본, ElevenLabs 내레이션, 자막.<br>▶ <b>소리와 함께 보기:</b> <i>(영상 링크 추가 예정)</i></sub></p>
+
+Gemini가 영상을 분석하고 GPT가 쓴 대본입니다(출력 언어: 영어).
+
+> **Hook:** Sweating on your commute?
+> **Points:** Pocket-size but blows strong. · Digital screen shows speed and battery. · Base makes it a desk fan, too.
+> **CTA:** Comment FAN for the link.
+
+<details>
+<summary>대시보드 화면</summary>
+
+![새 작업](docs/assets/dashboard.webp)
+![작업 검수](docs/assets/job-review.webp)
+
+</details>
+
 ## 주요 기능
 
 - **작업당 여러 소스** — 같은 제품의 클립을 최대 10개까지 합쳐 영상 하나로 만듭니다.

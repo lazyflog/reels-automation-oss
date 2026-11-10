@@ -20,6 +20,29 @@ Upload footage ─▶ Gemini video analysis ─▶ GPT script ─▶ ElevenLabs 
 > 访问第三方平台的集成功能**默认关闭**。启用其中任何一项之前，请先阅读
 > [docs/LEGAL.zh-CN.md](docs/LEGAL.zh-CN.md)。
 
+## 演示
+
+输入一段 10 秒的手持风扇视频，输出一条 Reel。使用默认设置、未选择人设，仅调整了字幕和封面样式。
+
+<p align="center">
+  <img src="docs/assets/demo-compare.webp" alt="左：原始视频 · 右：生成的 Reel" width="540">
+</p>
+<p align="center"><sub>左：原始素材（维护者自己拍摄） · 右：生成的 Reel —— 封面、AI 脚本、ElevenLabs 配音、字幕。<br>▶ <b>带声音观看：</b> <i>（视频链接即将添加）</i></sub></p>
+
+由 Gemini 分析视频、GPT 撰写的脚本（输出语言：英语）：
+
+> **Hook:** Sweating on your commute?
+> **Points:** Pocket-size but blows strong. · Digital screen shows speed and battery. · Base makes it a desk fan, too.
+> **CTA:** Comment FAN for the link.
+
+<details>
+<summary>控制台截图</summary>
+
+![新建任务](docs/assets/dashboard.webp)
+![任务审核](docs/assets/job-review.webp)
+
+</details>
+
 ## 功能特性
 
 - **单个任务支持多个素材** —— 可将同一产品的最多 10 段片段合成为一个视频。

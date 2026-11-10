@@ -22,6 +22,30 @@ Upload footage ─▶ Gemini video analysis ─▶ GPT script ─▶ ElevenLabs 
 > third-party platforms are **off by default**. Read [docs/LEGAL.md](docs/LEGAL.md) before
 > enabling any of them.
 
+## Demo
+
+A 10-second handheld-fan clip in, a Reel out — default settings, no persona, only the subtitle and
+cover style adjusted.
+
+<p align="center">
+  <img src="docs/assets/demo-compare.webp" alt="Left: original clip · Right: generated Reel" width="540">
+</p>
+<p align="center"><sub>Left: original footage (the maintainer's own clip) · Right: generated Reel — cover, AI script, ElevenLabs voice-over, subtitles.<br>▶ <b>Watch with sound:</b> <i>(video link coming soon)</i></sub></p>
+
+Script written by GPT from Gemini's analysis of the video:
+
+> **Hook:** Sweating on your commute?
+> **Points:** Pocket-size but blows strong. · Digital screen shows speed and battery. · Base makes it a desk fan, too.
+> **CTA:** Comment FAN for the link.
+
+<details>
+<summary>Dashboard screenshots</summary>
+
+![New job](docs/assets/dashboard.webp)
+![Job review](docs/assets/job-review.webp)
+
+</details>
+
 ## Features
 
 - **Multiple sources per job** — combine up to 10 clips of the same product into one video.
