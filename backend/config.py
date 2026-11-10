@@ -22,7 +22,7 @@ class Settings(BaseSettings):
 
     # ElevenLabs
     elevenlabs_api_key: str = ""
-    elevenlabs_voice_id: str = "21m00Tcm4TlvDq8ikWAM"
+    elevenlabs_voice_id: str = "tnSpp4vdxKPjI9w0GnoV"  # fallback when a job has no voice
 
     # Naver CLOVA Voice — OFF by default. CLOVA Voice's usage policy does not allow
     # saving/editing generated audio files, which this pipeline does (docs/LEGAL.md).
