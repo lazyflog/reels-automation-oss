@@ -13,11 +13,20 @@ logger = logging.getLogger(__name__)
 
 def extract_xhs_video(url: str, output_path: str) -> str | None:
     """Get the CDN URL from the xhs-downloader sidecar service, then download directly. Returns a metadata string."""
+    headers = {}
+    if settings.xhs_downloader_token:
+        headers["Authorization"] = f"Bearer {settings.xhs_downloader_token}"
     resp = requests.post(
         f"{settings.xhs_downloader_url.rstrip('/')}/xhs/detail",
         json={"url": url, "download": False},
-        timeout=30,
+        headers=headers,
+        timeout=60,
     )
+    if resp.status_code in (401, 403):
+        raise ValueError(
+            "xhs-downloader rejected the request — set XHS_DOWNLOADER_TOKEN "
+            "(see .env.example for how to generate it)"
+        )
     resp.raise_for_status()
     data = resp.json().get("data", {})
 

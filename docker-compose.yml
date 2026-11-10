@@ -68,7 +68,11 @@ services:
   # Read docs/LEGAL.md, then enable with: docker compose --profile xhs up -d  (+ ENABLE_XHS_IMPORT=true)
   xhs-downloader:
     profiles: ["xhs"]
-    image: joeanamier/xhs-downloader:2.8
+    # 2.9 is the first version that parses the current Xiaohongshu pages; pinned by digest.
+    # It requires a bearer token in XHS_DOWNLOADER_TOKEN. Generate one with:
+    #   docker compose --profile xhs exec xhs-downloader python -c "from source.module.auth import generate_auth_token as g; print(g())"
+    # The signing key is stored in ./temp/auth_secret.key, so tokens stay valid across restarts.
+    image: joeanamier/xhs-downloader:2.9-dev@sha256:ca2666c115f545fa406e3b3b639105ddda527e9b78d4ad69563a1161e0634667
     command: python main.py api
     ports: [ "5556:5556" ]
     volumes:
